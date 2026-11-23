@@ -86,6 +86,8 @@ class DownloadExecutionService {
     args.addAll([
       '-o',
       outputTemplate,
+      '--print',
+      'after_move:filepath',
       '--progress-template',
       'download:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s',
       '--',
@@ -93,6 +95,7 @@ class DownloadExecutionService {
     ]);
 
     final stderrLines = <String>[];
+    String? resolvedFilePath;
     final completer = Completer<String>();
 
     try {
@@ -100,8 +103,9 @@ class DownloadExecutionService {
         executable: ytDlpFile.path,
         arguments: args,
         onStdoutLine: (line) {
-          if (line.startsWith('download:')) {
-            final parts = line.replaceFirst('download:', '').split('|');
+          final trimmed = line.trim();
+          if (trimmed.startsWith('download:')) {
+            final parts = trimmed.replaceFirst('download:', '').split('|');
             if (parts.length >= 3) {
               final rawPercent = parts[0].replaceAll('%', '').trim();
               final percent = double.tryParse(rawPercent) ?? 0.0;
@@ -113,6 +117,8 @@ class DownloadExecutionService {
                 eta: eta.isNotEmpty ? eta : '--',
               ));
             }
+          } else if (trimmed.isNotEmpty && File(trimmed).existsSync()) {
+            resolvedFilePath = trimmed;
           }
         },
         onStderrLine: (line) {
@@ -125,7 +131,11 @@ class DownloadExecutionService {
 
       if (exitCode == 0) {
         onProgress(const DownloadProgress(percent: 100.0, speed: 'Done', eta: '0s'));
-        completer.complete(targetFolder.path);
+        // If --print after_move:filepath didn't capture, fallback to searching directory
+        if (resolvedFilePath == null || !File(resolvedFilePath!).existsSync()) {
+          resolvedFilePath = _findDownloadedFile(targetFolder, mediaInfo.id);
+        }
+        completer.complete(resolvedFilePath ?? targetFolder.path);
       } else {
         final error = ErrorClassifier.classify(stderrLines.join('\n'));
         completer.completeError(error);
@@ -135,6 +145,19 @@ class DownloadExecutionService {
     }
 
     return completer.future;
+  }
+
+  String? _findDownloadedFile(Directory folder, String mediaId) {
+    if (!folder.existsSync() || mediaId.isEmpty) return null;
+    try {
+      final entries = folder.listSync();
+      for (final entry in entries) {
+        if (entry is File && entry.path.contains('[$mediaId]')) {
+          return entry.path;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   void cancel() {

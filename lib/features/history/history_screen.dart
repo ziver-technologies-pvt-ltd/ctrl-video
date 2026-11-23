@@ -22,23 +22,52 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     super.dispose();
   }
 
-  void _openFile(String? path) {
-    if (path != null && File(path).existsSync()) {
-      OpenFilex.open(path);
+  Future<void> _openFile(String? path) async {
+    if (path == null) {
+      _showSnack('No file recorded.');
+      return;
+    }
+
+    final file = File(path);
+    if (file.existsSync()) {
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done && Platform.isLinux) {
+        await Process.run('xdg-open', [file.path]);
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File not found on disk.')),
-      );
+      _showSnack('File not found on disk ($path).');
     }
   }
 
-  void _openFolder(String? path) {
-    if (path != null) {
-      final file = File(path);
-      final dir = file.parent;
-      if (dir.existsSync()) {
-        OpenFilex.open(dir.path);
+  Future<void> _openFolder(String? path) async {
+    if (path == null) {
+      _showSnack('No path recorded.');
+      return;
+    }
+
+    String folderPath = path;
+    if (File(path).existsSync()) {
+      folderPath = File(path).parent.path;
+    } else if (!Directory(path).existsSync() && path.contains('/')) {
+      final parent = Directory(path).parent;
+      if (parent.existsSync()) {
+        folderPath = parent.path;
       }
+    }
+
+    if (Directory(folderPath).existsSync()) {
+      final result = await OpenFilex.open(folderPath);
+      if (result.type != ResultType.done && Platform.isLinux) {
+        await Process.run('xdg-open', [folderPath]);
+      }
+    } else {
+      _showSnack('Folder not found on disk ($folderPath).');
+    }
+  }
+
+  void _showSnack(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
