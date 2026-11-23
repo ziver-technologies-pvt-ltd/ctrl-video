@@ -1,15 +1,13 @@
 name: Build & Release
 
-# Adhering to CI Trigger Rules:
-# NEVER trigger unnecessary GitHub Actions on non-main branches.
-# Only run on pull requests to main or on release version tags (v*).
+# Strictly restricted to triggers on main branch only
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
-  push:
-    tags:
-      - 'v*'
 
 jobs:
   test:
