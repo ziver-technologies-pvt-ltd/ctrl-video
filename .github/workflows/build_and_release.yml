@@ -1,13 +1,18 @@
 name: Build & Release
 
-# Strictly restricted to triggers on main branch only
+# Strictly restricted to triggers on the main branch only (and tags on main for versioned releases)
 on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -127,8 +132,65 @@ jobs:
       - name: Build Release
         run: flutter build macos --release
 
+      - name: Package macOS Tarball
+        run: |
+          tar -czf ctrl_video-macos.tar.gz -C build/macos/Build/Products/Release ctrl_video.app
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ctrl_video-macos
-          path: build/macos/Build/Products/Release/ctrl_video.app
+          path: ctrl_video-macos.tar.gz
+
+  publish-release:
+    name: Publish Versioned GitHub Release
+    needs: [build-linux, build-windows, build-macos]
+    # Only run release publication on direct push to main or on release tags (never on PRs)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ctrl_video-linux-x64
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ctrl_video-windows-x64
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ctrl_video-macos
+
+      - name: Determine Release Tag & Version
+        id: versioning
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            # Extract version from pubspec.yaml on main branch push
+            VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+            TAG_NAME="v${VERSION}"
+          fi
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_title=ctrl+video ${TAG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versioning.outputs.tag_name }}
+          name: ${{ steps.versioning.outputs.release_title }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            ctrl_video-linux-x64.tar.gz
+            ctrl_video-windows-x64.zip
+            ctrl_video-macos.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
