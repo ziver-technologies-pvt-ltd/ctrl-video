@@ -1,121 +1,219 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app/theme.dart';
+import 'services/engine_manager.dart';
+
+// Riverpod providers for core singletons
+final engineManagerProvider = Provider<EngineManager>((ref) {
+  return EngineManager();
+});
+
+final engineStatusFutureProvider = FutureProvider<bool>((ref) async {
+  final manager = ref.watch(engineManagerProvider);
+  return manager.ensureEngineReady();
+});
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: CtrlVideoApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CtrlVideoApp extends StatelessWidget {
+  const CtrlVideoApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'ctrl+video',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const MainShellScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MainShellScreen extends ConsumerStatefulWidget {
+  const MainShellScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<MainShellScreen> createState() => _MainShellScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class _MainShellScreenState extends ConsumerState<MainShellScreen> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final engineReadyAsync = ref.watch(engineStatusFutureProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Row(
+        children: [
+          // Desktop Navigation Rail
+          NavigationRail(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            labelType: NavigationRailLabelType.all,
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 12.0, bottom: 20.0),
+              child: Image.asset(
+                'lib/assets/logo.png',
+                width: 36,
+                height: 36,
+              ),
             ),
-          ],
-        ),
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.download_outlined),
+                selectedIcon: Icon(Icons.download),
+                label: Text('Download'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.queue_outlined),
+                selectedIcon: Icon(Icons.queue),
+                label: Text('Queue'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.history_outlined),
+                selectedIcon: Icon(Icons.history),
+                label: Text('History'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
+                label: Text('Settings'),
+              ),
+            ],
+          ),
+          const VerticalDivider(thickness: 1, width: 1),
+
+          // Main Screen Area
+          Expanded(
+            child: Column(
+              children: [
+                // Top App Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        width: 0.8,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'ctrl+video',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                      ),
+                      const Spacer(),
+                      // Engine Status Indicator
+                      engineReadyAsync.when(
+                        data: (ready) {
+                          final manager = ref.watch(engineManagerProvider);
+                          return Row(
+                            children: [
+                              Icon(
+                                ready ? Icons.check_circle : Icons.warning_amber_rounded,
+                                size: 16,
+                                color: ready
+                                    ? Colors.green
+                                    : Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                ready
+                                    ? 'Engine ready (${manager.ytDlpVersion ?? "local"})'
+                                    : 'Engine missing binaries',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          );
+                        },
+                        loading: () => Row(
+                          children: [
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Initializing engine...',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                        error: (err, _) => Row(
+                          children: [
+                            Icon(Icons.error_outline,
+                                size: 16, color: Theme.of(context).colorScheme.error),
+                            const SizedBox(width: 6),
+                            Text('Engine error',
+                                style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Content View according to selected tab
+                Expanded(
+                  child: _buildCurrentView(_selectedIndex),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildCurrentView(int index) {
+    switch (index) {
+      case 0:
+        return _buildPlaceholderView('Paste link to start download', Icons.link_rounded);
+      case 1:
+        return _buildPlaceholderView('No active downloads in queue', Icons.inbox_outlined);
+      case 2:
+        return _buildPlaceholderView('No download history yet', Icons.history_rounded);
+      case 3:
+        return _buildPlaceholderView('Settings and configurations', Icons.tune_rounded);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildPlaceholderView(String label, IconData icon) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 48, color: Theme.of(context).colorScheme.outline),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
       ),
     );
   }

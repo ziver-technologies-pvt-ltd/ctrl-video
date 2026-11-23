@@ -22,11 +22,12 @@
 ### Milestone 1: Scaffold, UI System & Engine Foundation
 - [x] **Task 1.1**: Initialize Flutter project scaffold (`ctrl_video`) for linux, macos, windows.
 - [x] **Task 1.2**: Define MD3 UI Guidelines ([docs/UI-GUIDELINES.md](file:///home/ceosiva/Ziver/ctrl+video/docs/UI-GUIDELINES.md)) & integrate brand logo asset into `lib/assets/` & `assets/branding/`.
-- [ ] **Task 1.3**: Configure directory layout (`lib/app/theme`, `lib/features`, `lib/services`, `lib/data`, `lib/models`) and MD3 neutral theme data.
-- [ ] **Task 1.4**: Add core dependencies to `pubspec.yaml` (`flutter_riverpod`, `drift`, `sqlite3_flutter_libs`, etc.).
-- [ ] **Task 1.5**: Prepare asset directory structure for bundled engine binaries (`assets/engine/linux-x64/`, etc.).
-- [ ] **Task 1.6**: Implement initial `ProcessRunner` and `PathResolver`.
-- [ ] **Task 1.7**: Implement initial `EngineManager` seed logic to `~/.local/share/ctrl_video/engine/`.
+- [x] **Task 1.3**: Configure directory layout (`lib/app/theme`, `lib/features`, `lib/services`, `lib/data`, `lib/models`) and MD3 neutral theme data.
+- [x] **Task 1.4**: Add core dependencies to `pubspec.yaml` (`flutter_riverpod`, `drift`, `sqlite3_flutter_libs`, `path_provider`, etc.).
+- [x] **Task 1.5**: Prepare asset directory structure for bundled engine binaries (`assets/engine/linux-x64/`, etc.).
+- [x] **Task 1.6**: Implement initial `ProcessRunner` and `PathResolver`.
+- [x] **Task 1.7**: Implement initial `EngineManager` seed logic to `~/.local/share/ctrl_video/engine/`.
+- [x] **Task 1.8**: Create desktop shell navigation rail (Download, Queue, History, Settings) with live engine status bar.
 
 ### Milestone 2: URL Metadata & Single Download Pipeline
 - [ ] **Task 2.1**: Implement `MetadataService` and `MediaInfo` model parsing.

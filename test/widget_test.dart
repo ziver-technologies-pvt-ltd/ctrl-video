@@ -1,30 +1,35 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ctrl_video/main.dart';
+import 'package:ctrl_video/services/engine_manager.dart';
+
+// Test fake engine manager that immediately reports ready
+class FakeEngineManager extends EngineManager {
+  @override
+  Future<bool> ensureEngineReady() async => true;
+
+  @override
+  String? get ytDlpVersion => '2026.01.01-test';
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('CtrlVideoApp displays navigation destinations and title', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          engineManagerProvider.overrideWithValue(FakeEngineManager()),
+          engineStatusFutureProvider.overrideWith((ref) async => true),
+        ],
+        child: const CtrlVideoApp(),
+      ),
+    );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('ctrl+video'), findsOneWidget);
+    expect(find.text('Download'), findsOneWidget);
+    expect(find.text('Queue'), findsOneWidget);
+    expect(find.text('History'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }
