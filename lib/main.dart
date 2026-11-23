@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit/media_kit.dart';
 import 'app/theme.dart';
 import 'data/database.dart';
 import 'features/history/history_screen.dart';
@@ -34,6 +35,7 @@ final engineStatusFutureProvider = FutureProvider<bool>((ref) async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   runApp(const ProviderScope(child: CtrlVideoApp()));
 }
 

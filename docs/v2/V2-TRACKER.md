@@ -32,10 +32,10 @@
 - [x] **Task 2.2.4**: Build UI segmented control and advanced format selection table (`AdvancedFormatPickerWidget`).
 
 ### Milestone 2.3: In-App Preview Player (`media_kit`)
-- [ ] **Task 2.3.1**: Add `media_kit` and `media_kit_video` dependencies to `pubspec.yaml`.
-- [ ] **Task 2.3.2**: Initialize `MediaKit.ensureInitialized()` in `lib/main.dart`.
-- [ ] **Task 2.3.3**: Implement `PreviewService` (stream selection, HTTP headers, separate audio track attachment, URL refresh).
-- [ ] **Task 2.3.4**: Build desktop player widget with custom controls and keyboard shortcuts (Space, seek, frame-step).
+- [x] **Task 2.3.1**: Add `media_kit`, `media_kit_video`, and `media_kit_libs_video` dependencies to `pubspec.yaml`.
+- [x] **Task 2.3.2**: Initialize `MediaKit.ensureInitialized()` in `lib/main.dart`.
+- [x] **Task 2.3.3**: Implement `PreviewService` (low-bandwidth stream selection <= 720p, HTTP headers, separate audio track attachment, URL refresh).
+- [x] **Task 2.3.4**: Build desktop player widget (`DesktopPreviewPlayerWidget`) with custom controls and keyboard shortcuts (Space, seek, frame-step).
 
 ### Milestone 2.4: Frame-Accurate Video Trimming
 - [ ] **Task 2.4.1**: Build interactive timeline scrubber with draggable start/end handles and playhead.
