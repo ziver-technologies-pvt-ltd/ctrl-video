@@ -4,13 +4,15 @@ This document outlines the detailed breakdown of milestones for building **ctrl+
 
 ---
 
-## Milestone 1: Environment, Scaffolding & Engine Foundation
-**Goal:** Initialize project structure, verify Flutter desktop on Linux, establish local engine assets (`yt-dlp` & `ffmpeg`), and create safe process execution layer.
+## Milestone 1: Environment, Scaffolding, UI Foundations & Engine Seed
+**Goal:** Initialize project structure, verify Flutter desktop on Linux, establish MD3 neutral UI design system & branding assets, bundle initial local engine assets (`yt-dlp` & `ffmpeg`), and create safe process execution layer.
 
 - [ ] Flutter project scaffolding (`ctrl_video`, desktop platforms: Linux, macOS, Windows).
-- [ ] Directory layout setup: `app/`, `features/`, `services/`, `data/`, `models/`, `assets/engine/`.
+- [ ] Brand assets integration: Brand logo in `lib/assets/` & `assets/branding/`.
+- [ ] UI Theme System: Material Design 3 theme configuration with neutral tonal palette (Light & Dark mode).
+- [ ] Directory layout setup: `app/` (theme, navigation), `features/`, `services/`, `data/`, `models/`, `assets/engine/`.
 - [ ] Core dependencies added: `flutter_riverpod`, `drift`, `sqlite3_flutter_libs`, `path_provider`, `file_picker`, `open_filex`, `logger`.
-- [ ] Linux engine setup: Download & bundle initial static `yt-dlp` and `ffmpeg` binaries for local testing.
+- [ ] Linux engine setup: Bundle initial static `yt-dlp` and `ffmpeg` binaries for local testing.
 - [ ] `ProcessRunner` implementation: safe argument list execution (no raw shell strings), working directory handling, process tree lifecycle.
 - [ ] `EngineManager` (Phase 1): Locate bundled binaries and copy/seed them to user data directory (`~/.local/share/ctrl_video/engine/`).
 
