@@ -39,7 +39,13 @@ class DesktopPreviewPlayerWidgetState extends State<DesktopPreviewPlayerWidget> 
   void initState() {
     super.initState();
     _player = Player();
-    _videoController = VideoController(_player);
+    _videoController = VideoController(
+      _player,
+      configuration: const VideoControllerConfiguration(
+        hwdec: 'auto-safe',
+        enableHardwareAcceleration: true,
+      ),
+    );
 
     _player.stream.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
