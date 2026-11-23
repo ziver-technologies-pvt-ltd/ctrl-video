@@ -74,6 +74,7 @@ class MediaInfo {
   final int? durationSeconds;
   final String? uploader;
   final List<FormatOption> formats;
+  final Map<String, dynamic>? rawJson;
 
   const MediaInfo({
     required this.url,
@@ -84,6 +85,7 @@ class MediaInfo {
     this.durationSeconds,
     this.uploader,
     this.formats = const [],
+    this.rawJson,
   });
 
   String get formattedDuration {
@@ -152,6 +154,7 @@ class MediaInfo {
       durationSeconds: (json['duration'] as num?)?.toInt(),
       uploader: json['uploader']?.toString() ?? json['channel']?.toString(),
       formats: parsedFormats,
+      rawJson: json,
     );
   }
 }

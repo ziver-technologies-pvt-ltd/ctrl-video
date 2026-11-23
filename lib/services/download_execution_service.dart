@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import '../models/format_selection.dart';
 import '../models/media_info.dart';
 import 'engine_manager.dart';
 import 'error_classifier.dart';
 import 'path_resolver.dart';
 import 'process_runner.dart';
+import 'trim_service.dart';
 
 enum DownloadStatus {
   idle,
@@ -44,6 +46,8 @@ class DownloadExecutionService {
   Future<String> startDownload({
     required MediaInfo mediaInfo,
     required FormatOption format,
+    FormatSelection? formatSelection,
+    TrimRange? trimRange,
     Directory? destinationDir,
     required void Function(DownloadProgress progress) onProgress,
   }) async {
@@ -61,7 +65,13 @@ class DownloadExecutionService {
       ],
     ];
 
-    if (format.isAudioOnly) {
+    if (trimRange != null && trimRange.isValid) {
+      args.addAll(trimRange.toYtDlpArgs());
+    }
+
+    if (formatSelection != null) {
+      args.addAll(formatSelection.toYtDlpArgs());
+    } else if (format.isAudioOnly) {
       args.addAll([
         '-x',
         '--audio-format',
@@ -104,8 +114,9 @@ class DownloadExecutionService {
         arguments: args,
         onStdoutLine: (line) {
           final trimmed = line.trim();
-          if (trimmed.startsWith('download:')) {
-            final parts = trimmed.replaceFirst('download:', '').split('|');
+          if (trimmed.contains('|') && (trimmed.startsWith('download:') || trimmed.contains('%'))) {
+            final clean = trimmed.replaceFirst('download:', '').trim();
+            final parts = clean.split('|');
             if (parts.length >= 3) {
               final rawPercent = parts[0].replaceAll('%', '').trim();
               final percent = double.tryParse(rawPercent) ?? 0.0;

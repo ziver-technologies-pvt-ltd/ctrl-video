@@ -1,155 +1,193 @@
 import 'package:flutter/material.dart';
 
-/// Defines the neutral Material Design 3 color palettes and themes for ctrl+video.
+/// Semantic color tokens for ctrl+video v2:
+/// - 5-level monochrome surface elevation (surface-0 to surface-4)
+/// - Warm Amber signal accent for active trims, focus rings, and metrics
+class AppColors {
+  AppColors._();
+
+  // Signal Accent Token (Warm Amber)
+  static const Color accent = Color(0xFFF59E0B);
+  static const Color accentLight = Color(0xFFFBBF24);
+  static const Color accentDark = Color(0xFFD97706);
+
+  // Light Mode Surfaces (Level 0 - Level 4)
+  static const Color lightSurface0 = Color(0xFFF6F6F9); // Base window background
+  static const Color lightSurface1 = Color(0xFFFFFFFF); // Cards / sidebar rail
+  static const Color lightSurface2 = Color(0xFFECECEF); // Secondary panels / inputs
+  static const Color lightSurface3 = Color(0xFFE2E2E8); // Hovered / raised containers
+  static const Color lightSurface4 = Color(0xFFD5D5DC); // Modals / popups
+
+  // Dark Mode Surfaces (Level 0 - Level 4)
+  static const Color darkSurface0 = Color(0xFF0F0F12); // Deep window background
+  static const Color darkSurface1 = Color(0xFF17171C); // Cards / sidebar rail
+  static const Color darkSurface2 = Color(0xFF22222A); // Secondary panels / inputs
+  static const Color darkSurface3 = Color(0xFF2E2E38); // Hovered / raised containers
+  static const Color darkSurface4 = Color(0xFF3B3B48); // Modals / popups
+
+  // Text Hierarchy
+  static const Color lightInkPrimary = Color(0xFF141416);
+  static const Color lightInkSecondary = Color(0xFF5A5B63);
+  static const Color lightInkDisabled = Color(0xFF8E8F99);
+
+  static const Color darkInkPrimary = Color(0xFFEBEBF0);
+  static const Color darkInkSecondary = Color(0xFF9EA0AB);
+  static const Color darkInkDisabled = Color(0xFF656670);
+
+  // Status Colors
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFEF4444);
+}
+
+/// Defines the neutral + warm amber Material Design 3 themes for ctrl+video.
 class AppTheme {
   AppTheme._();
 
-  // Neutral Light Theme
+  // Monospace font styling for timecodes, bitrates, speed, and ETA
+  static const TextStyle monoStyle = TextStyle(
+    fontFamily: 'monospace',
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: const ColorScheme(
       brightness: Brightness.light,
-      primary: Color(0xFF1E1E1E),
-      onPrimary: Color(0xFFFFFFFF),
-      primaryContainer: Color(0xFFE8E8EC),
-      onPrimaryContainer: Color(0xFF1C1B1F),
-      secondary: Color(0xFF3B3D42),
-      onSecondary: Color(0xFFFFFFFF),
-      secondaryContainer: Color(0xFFE4E4E8),
-      onSecondaryContainer: Color(0xFF191A1E),
-      tertiary: Color(0xFF4C4D52),
-      onTertiary: Color(0xFFFFFFFF),
-      tertiaryContainer: Color(0xFFECECEF),
-      onTertiaryContainer: Color(0xFF222327),
-      error: Color(0xFFBA1A1A),
-      onError: Color(0xFFFFFFFF),
-      errorContainer: Color(0xFFFFDAD6),
-      onErrorContainer: Color(0xFF410002),
-      surface: Color(0xFFF9F9FB),
-      onSurface: Color(0xFF191C1E),
-      onSurfaceVariant: Color(0xFF45474C),
-      outline: Color(0xFF75777D),
-      outlineVariant: Color(0xFFC5C6CD),
-      surfaceContainerLowest: Color(0xFFFFFFFF),
-      surfaceContainerLow: Color(0xFFF5F5F8),
-      surfaceContainer: Color(0xFFF0F0F4),
-      surfaceContainerHigh: Color(0xFFEAEAEF),
-      surfaceContainerHighest: Color(0xFFE2E2E8),
+      primary: AppColors.lightInkPrimary,
+      onPrimary: Colors.white,
+      primaryContainer: AppColors.lightSurface2,
+      onPrimaryContainer: AppColors.lightInkPrimary,
+      secondary: AppColors.accent,
+      onSecondary: Colors.black,
+      secondaryContainer: Color(0xFFFEF3C7),
+      onSecondaryContainer: Color(0xFF78350F),
+      tertiary: Color(0xFF3B3D42),
+      onTertiary: Colors.white,
+      error: AppColors.error,
+      onError: Colors.white,
+      surface: AppColors.lightSurface0,
+      onSurface: AppColors.lightInkPrimary,
+      onSurfaceVariant: AppColors.lightInkSecondary,
+      outline: Color(0xFFC5C6CD),
+      outlineVariant: Color(0xFFE2E2E8),
+      surfaceContainerLowest: AppColors.lightSurface1,
+      surfaceContainerLow: AppColors.lightSurface0,
+      surfaceContainer: AppColors.lightSurface1,
+      surfaceContainerHigh: AppColors.lightSurface2,
+      surfaceContainerHighest: AppColors.lightSurface3,
     ),
-    scaffoldBackgroundColor: const Color(0xFFF9F9FB),
+    scaffoldBackgroundColor: AppColors.lightSurface0,
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFC5C6CD), width: 1),
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFFE2E2E8), width: 1),
       ),
-      color: Colors.white,
+      color: AppColors.lightSurface1,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFFFFFFF),
+      fillColor: AppColors.lightSurface1,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Color(0xFFC5C6CD)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Color(0xFFC5C6CD)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF1E1E1E), width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.accent, width: 1.8),
       ),
     ),
     navigationRailTheme: const NavigationRailThemeData(
-      backgroundColor: Color(0xFFF0F0F4),
-      indicatorColor: Color(0xFF1E1E1E),
+      backgroundColor: AppColors.lightSurface1,
+      indicatorColor: AppColors.lightInkPrimary,
       selectedIconTheme: IconThemeData(color: Colors.white),
-      unselectedIconTheme: IconThemeData(color: Color(0xFF45474C)),
+      unselectedIconTheme: IconThemeData(color: AppColors.lightInkSecondary),
       selectedLabelTextStyle: TextStyle(
-        color: Color(0xFF1E1E1E),
+        color: AppColors.lightInkPrimary,
         fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
       unselectedLabelTextStyle: TextStyle(
-        color: Color(0xFF45474C),
+        color: AppColors.lightInkSecondary,
         fontWeight: FontWeight.normal,
         fontSize: 12,
       ),
     ),
   );
 
-  // Neutral Dark Theme
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: const ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xFFE2E2E6),
-      onPrimary: Color(0xFF1A1C1E),
-      primaryContainer: Color(0xFF2D2F33),
-      onPrimaryContainer: Color(0xFFE2E2E6),
-      secondary: Color(0xFFC5C6CD),
-      onSecondary: Color(0xFF2E3035),
-      secondaryContainer: Color(0xFF383A40),
-      onSecondaryContainer: Color(0xFFE2E2E6),
+      primary: AppColors.darkInkPrimary,
+      onPrimary: AppColors.darkSurface0,
+      primaryContainer: AppColors.darkSurface2,
+      onPrimaryContainer: AppColors.darkInkPrimary,
+      secondary: AppColors.accent,
+      onSecondary: Colors.black,
+      secondaryContainer: Color(0xFF451A03),
+      onSecondaryContainer: Color(0xFFFDE68A),
       tertiary: Color(0xFFB0B2B8),
-      onTertiary: Color(0xFF282A2E),
-      tertiaryContainer: Color(0xFF3E4046),
-      onTertiaryContainer: Color(0xFFE2E2E6),
-      error: Color(0xFFFFB4AB),
-      onError: Color(0xFF690005),
-      errorContainer: Color(0xFF93000A),
-      onErrorContainer: Color(0xFFFFDAD6),
-      surface: Color(0xFF131316),
-      onSurface: Color(0xFFE2E2E6),
-      onSurfaceVariant: Color(0xFFC5C6CD),
-      outline: Color(0xFF8F9097),
-      outlineVariant: Color(0xFF44474E),
-      surfaceContainerLowest: Color(0xFF0E0E11),
-      surfaceContainerLow: Color(0xFF17171B),
-      surfaceContainer: Color(0xFF1E1F24),
-      surfaceContainerHigh: Color(0xFF282A2F),
-      surfaceContainerHighest: Color(0xFF33353B),
+      onTertiary: Color(0xFF1E1F24),
+      error: AppColors.error,
+      onError: Colors.white,
+      surface: AppColors.darkSurface0,
+      onSurface: AppColors.darkInkPrimary,
+      onSurfaceVariant: AppColors.darkInkSecondary,
+      outline: Color(0xFF4A4B56),
+      outlineVariant: Color(0xFF2E2E38),
+      surfaceContainerLowest: AppColors.darkSurface0,
+      surfaceContainerLow: AppColors.darkSurface1,
+      surfaceContainer: AppColors.darkSurface1,
+      surfaceContainerHigh: AppColors.darkSurface2,
+      surfaceContainerHighest: AppColors.darkSurface3,
     ),
-    scaffoldBackgroundColor: const Color(0xFF131316),
+    scaffoldBackgroundColor: AppColors.darkSurface0,
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFF44474E), width: 1),
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFF2E2E38), width: 1),
       ),
-      color: const Color(0xFF1E1F24),
+      color: AppColors.darkSurface1,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF1E1F24),
+      fillColor: AppColors.darkSurface1,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF44474E)),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF4A4B56)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF44474E)),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF4A4B56)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE2E2E6), width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.accent, width: 1.8),
       ),
     ),
     navigationRailTheme: const NavigationRailThemeData(
-      backgroundColor: Color(0xFF17171B),
-      indicatorColor: Color(0xFFE2E2E6),
-      selectedIconTheme: IconThemeData(color: Color(0xFF1A1C1E)),
-      unselectedIconTheme: IconThemeData(color: Color(0xFFC5C6CD)),
+      backgroundColor: AppColors.darkSurface1,
+      indicatorColor: AppColors.darkInkPrimary,
+      selectedIconTheme: IconThemeData(color: AppColors.darkSurface0),
+      unselectedIconTheme: IconThemeData(color: AppColors.darkInkSecondary),
       selectedLabelTextStyle: TextStyle(
-        color: Color(0xFFE2E2E6),
+        color: AppColors.darkInkPrimary,
         fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
       unselectedLabelTextStyle: TextStyle(
-        color: Color(0xFF8F9097),
+        color: AppColors.darkInkDisabled,
         fontWeight: FontWeight.normal,
         fontSize: 12,
       ),

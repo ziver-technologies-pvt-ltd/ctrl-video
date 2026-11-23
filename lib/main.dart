@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit/media_kit.dart';
 import 'app/theme.dart';
 import 'data/database.dart';
+import 'features/command_palette/command_palette.dart';
 import 'features/history/history_screen.dart';
 import 'features/home/download_screen.dart';
 import 'features/queue/queue_screen.dart';
@@ -34,6 +37,7 @@ final engineStatusFutureProvider = FutureProvider<bool>((ref) async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   runApp(const ProviderScope(child: CtrlVideoApp()));
 }
 
@@ -63,14 +67,63 @@ class MainShellScreen extends ConsumerStatefulWidget {
 class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   int _selectedIndex = 0;
 
+  void _showCommandPalette() {
+    CommandPaletteDialog.show(context, [
+      CommandItem(
+        label: 'Switch to Download',
+        description: 'Open the download and URL paste workspace',
+        icon: Icons.download_rounded,
+        shortcut: '1',
+        onSelect: () => setState(() => _selectedIndex = 0),
+      ),
+      CommandItem(
+        label: 'Switch to Queue',
+        description: 'View active and pending download tasks',
+        icon: Icons.queue_rounded,
+        shortcut: '2',
+        onSelect: () => setState(() => _selectedIndex = 1),
+      ),
+      CommandItem(
+        label: 'Switch to History',
+        description: 'Browse local completed downloads',
+        icon: Icons.history_rounded,
+        shortcut: '3',
+        onSelect: () => setState(() => _selectedIndex = 2),
+      ),
+      CommandItem(
+        label: 'Open Settings',
+        description: 'Configure download folder and preferences',
+        icon: Icons.settings_rounded,
+        shortcut: '4',
+        onSelect: () => setState(() => _selectedIndex = 3),
+      ),
+      CommandItem(
+        label: 'Update Engine',
+        description: 'Check GitHub releases for yt-dlp update',
+        icon: Icons.sync_rounded,
+        shortcut: 'U',
+        onSelect: () {
+          ref.read(engineManagerProvider).ensureEngineReady();
+        },
+      ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final engineReadyAsync = ref.watch(engineStatusFutureProvider);
     final queue = ref.watch(downloadManagerProvider).queue;
     final activeDownloads = queue.where((q) => q.status == DownloadStatus.downloading).length;
 
-    return Scaffold(
-      body: Row(
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyK, control: true): _showCommandPalette,
+        const SingleActivator(LogicalKeyboardKey.keyK, meta: true): _showCommandPalette,
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          body: Row(
         children: [
           // Navigation Rail
           NavigationRail(
@@ -128,7 +181,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
               children: [
                 // Top Bar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     border: Border(
@@ -147,12 +200,35 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
                               letterSpacing: 0.5,
                             ),
                       ),
+                      const SizedBox(width: 12),
+                      // Command Palette hint pill
+                      InkWell(
+                        onTap: _showCommandPalette,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.search_rounded, size: 14, color: Theme.of(context).colorScheme.outline),
+                              const SizedBox(width: 4),
+                              Text('Ctrl+K', style: AppTheme.monoStyle.copyWith(fontSize: 10)),
+                            ],
+                          ),
+                        ),
+                      ),
                       const Spacer(),
                       // Engine Status Indicator
                       engineReadyAsync.when(
                         data: (ready) {
                           final manager = ref.watch(engineManagerProvider);
                           return Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 ready ? Icons.check_circle : Icons.warning_amber_rounded,
@@ -162,18 +238,23 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
                                     : Theme.of(context).colorScheme.error,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                ready
-                                    ? 'Engine ready (${manager.ytDlpVersion ?? "local"})'
-                                    : 'Engine missing binaries',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 160),
+                                child: Text(
+                                  ready
+                                      ? 'Engine ready (${manager.ytDlpVersion ?? "local"})'
+                                      : 'Engine missing binaries',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
                               ),
                             ],
                           );
                         },
                         loading: () => Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const SizedBox(
                               width: 14,
@@ -182,12 +263,13 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Initializing engine...',
+                              'Initializing...',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
                         ),
                         error: (err, _) => Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.error_outline,
                                 size: 16, color: Theme.of(context).colorScheme.error),
@@ -211,6 +293,8 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 
