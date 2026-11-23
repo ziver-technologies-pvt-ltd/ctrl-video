@@ -12,7 +12,7 @@
 - [x] **Milestone 1: Scaffold, UI System & Engine Foundation**: Completed
 - [x] **Milestone 2: Metadata & Single Download Pipeline**: Completed
 - [x] **Milestone 3: Queue Management, History & Persistence**: Completed
-- [ ] **Milestone 4: Engine Update & Diagnostics**: Pending
+- [x] **Milestone 4: Engine Auto-Update, Diagnostics & Self-Healing**: Completed
 - [ ] **Milestone 5: Multi-Platform Packaging & CI**: Pending
 
 ---
@@ -47,10 +47,12 @@
 - [x] **Task 3.7**: Unit and widget tests for database operations and queue lifecycle.
 
 ### Milestone 4: Engine Auto-Update, Diagnostics & Self-Healing
-- [ ] **Task 4.1**: Implement GitHub release fetch and SHA-256 verification in `EngineManager`.
-- [ ] **Task 4.2**: Implement atomic swap and `.prev` rollback mechanism.
-- [ ] **Task 4.3**: Integrate self-healing retry for outdated extractor errors.
-- [ ] **Task 4.4**: Implement local file logging with diagnostic export.
+- [x] **Task 4.1**: Implement `EngineUpdateService` to fetch latest `yt-dlp` release info from GitHub API and check platform SHA-256 hashes.
+- [x] **Task 4.2**: Implement atomic download, validation, and swap in `EngineManager` with `.prev` rollback on smoke test failure.
+- [x] **Task 4.3**: Integrate self-healing retry in `DownloadManager` when an outdated engine signature is classified.
+- [x] **Task 4.4**: Implement local rotating file logger (`lib/services/app_logger.dart`) with diagnostic info export to clipboard.
+- [x] **Task 4.5**: Enhance Settings UI with live update progress, version comparison, and diagnostic export.
+- [x] **Task 4.6**: Unit tests for update verification, checksum calculation, and rollback logic.
 
 ### Milestone 5: Packaging & CI/CD
 - [ ] **Task 5.1**: GitHub Actions workflow for multi-OS build matrix.

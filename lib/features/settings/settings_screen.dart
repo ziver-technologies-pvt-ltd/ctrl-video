@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/app_logger.dart';
+import '../../services/engine_manager.dart';
 import '../../services/path_resolver.dart';
 import '../../main.dart';
 
@@ -15,6 +18,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _downloadDir = '';
   int _concurrency = 2;
+  bool _isUpdatingEngine = false;
+  double? _updateProgress;
+  String? _updateMessage;
 
   @override
   void initState() {
@@ -51,6 +57,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       });
       final db = ref.read(databaseProvider);
       await db.setSetting('downloadDir', selected);
+    }
+  }
+
+  Future<void> _triggerEngineUpdate() async {
+    setState(() {
+      _isUpdatingEngine = true;
+      _updateProgress = null;
+      _updateMessage = 'Checking GitHub releases for latest version...';
+    });
+
+    final engineManager = ref.read(engineManagerProvider);
+    final success = await engineManager.updateEngine(
+      onProgress: (progress) {
+        setState(() {
+          _updateProgress = progress;
+          _updateMessage = 'Downloading engine update: ${(progress * 100).toStringAsFixed(0)}%';
+        });
+      },
+    );
+
+    setState(() {
+      _isUpdatingEngine = false;
+      _updateMessage = success
+          ? 'Engine successfully updated to ${engineManager.ytDlpVersion ?? "latest"}.'
+          : 'Engine is already up to date or update was aborted.';
+    });
+  }
+
+  Future<void> _copyDiagnosticLogs() async {
+    final diagnostics = await AppLogger.getDiagnosticInfo();
+    await Clipboard.setData(ClipboardData(text: diagnostics));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Diagnostic information copied to clipboard.')),
+      );
     }
   }
 
@@ -154,7 +195,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 16),
 
-              // Engine Information
+              // Engine Version & Update
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Engine Lifecycle', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Current version: ${engineManager.ytDlpVersion ?? "local"}',
+                                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                          FilledButton.icon(
+                            icon: _isUpdatingEngine
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.sync_rounded, size: 18),
+                            label: const Text('Update Engine'),
+                            onPressed: _isUpdatingEngine ? null : _triggerEngineUpdate,
+                          ),
+                        ],
+                      ),
+                      if (_updateMessage != null) ...[
+                        const SizedBox(height: 12),
+                        if (_updateProgress != null)
+                          LinearProgressIndicator(value: _updateProgress),
+                        const SizedBox(height: 6),
+                        Text(
+                          _updateMessage!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Diagnostics & Logs
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
@@ -164,24 +258,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Engine Version', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                          Text('Diagnostics & Support', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
                           Text(
-                            'yt-dlp: ${engineManager.ytDlpVersion ?? "local sidecar"}',
+                            'Copy system environment and recent execution logs.',
                             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
                       OutlinedButton.icon(
-                        icon: const Icon(Icons.sync_rounded, size: 18),
-                        label: const Text('Check for Updates'),
-                        onPressed: () async {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Checking engine updates...')),
-                          );
-                          await engineManager.ensureEngineReady();
-                          if (mounted) setState(() {});
-                        },
+                        icon: const Icon(Icons.copy_rounded, size: 18),
+                        label: const Text('Copy Logs'),
+                        onPressed: _copyDiagnosticLogs,
                       ),
                     ],
                   ),
