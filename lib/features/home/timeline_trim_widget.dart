@@ -144,30 +144,37 @@ class _TimelineTrimWidgetState extends State<TimelineTrimWidget> {
                 },
               ),
 
-              // Quick In/Out buttons & Mode Switcher
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Wrap(
-                    spacing: 8,
+              // Quick In/Out buttons & Mode Switcher (Responsive)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 420;
+                  final inOutButtons = Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
                         icon: const Icon(Icons.arrow_downward_rounded, size: 14),
-                        label: const Text('Start at Playhead [I]'),
+                        label: const Text('[I] Start'),
                         onPressed: _setStartAtCurrent,
                       ),
+                      const SizedBox(width: 8),
                       OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
                         icon: const Icon(Icons.arrow_upward_rounded, size: 14),
-                        label: const Text('End at Playhead [O]'),
+                        label: const Text('[O] End'),
                         onPressed: _setEndAtCurrent,
                       ),
                     ],
-                  ),
+                  );
 
-                  // Fast vs Exact Mode Segmented Button
-                  SegmentedButton<TrimMode>(
+                  final modeSegment = SegmentedButton<TrimMode>(
+                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
                     segments: const [
                       ButtonSegment(value: TrimMode.exact, label: Text('Exact (Frame)')),
                       ButtonSegment(value: TrimMode.fast, label: Text('Fast (Keyframe)')),
@@ -177,8 +184,27 @@ class _TimelineTrimWidgetState extends State<TimelineTrimWidget> {
                       setState(() => _mode = set.first);
                       _notifyRange();
                     },
-                  ),
-                ],
+                  );
+
+                  if (isCompact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        inOutButtons,
+                        const SizedBox(height: 8),
+                        modeSegment,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      inOutButtons,
+                      modeSegment,
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 12),

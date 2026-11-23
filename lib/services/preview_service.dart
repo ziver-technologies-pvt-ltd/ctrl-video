@@ -46,8 +46,13 @@ class PreviewService {
         final acodec = map['acodec']?.toString();
         final height = map['height'] as int?;
         final url = map['url']?.toString();
+        final protocol = map['protocol']?.toString() ?? '';
+
+        // Exclude m3u8_native or manifest urls if protocol is specified
+        final isDirect = protocol.isEmpty || (protocol.startsWith('http') && !protocol.contains('m3u8'));
 
         if (url != null &&
+            isDirect &&
             vcodec != null &&
             vcodec != 'none' &&
             acodec != null &&
@@ -60,45 +65,79 @@ class PreviewService {
       if (combinedCandidates.isNotEmpty) {
         combinedCandidates.sort((a, b) => ((b['height'] as int?) ?? 0).compareTo((a['height'] as int?) ?? 0));
         final best = combinedCandidates.first;
+        final streamHeaders = Map<String, String>.from(httpHeaders);
+        if (best['http_headers'] is Map) {
+          (best['http_headers'] as Map).forEach((k, v) => streamHeaders[k.toString()] = v.toString());
+        }
         return PreviewStreamInfo(
           videoUrl: best['url'].toString(),
-          httpHeaders: httpHeaders,
+          httpHeaders: streamHeaders,
           label: '${best['height'] ?? 480}p (Combined)',
         );
       }
 
-      // 2. Pair separate video stream (<= 720p) with audio stream
+      // 2. Pair separate video stream (prefer 360p or 480p or 720p direct HTTPS) with audio stream
       String? videoUrl;
       String? audioUrl;
       int? videoHeight;
+      Map<String, String> videoHeaders = Map.from(httpHeaders);
+
+      // Prefer 360p-720p direct HTTPS MP4/WebM video
+      final videoCandidates = <Map<String, dynamic>>[];
+      final audioCandidates = <Map<String, dynamic>>[];
 
       for (final f in formats) {
-        final map = f as Map<String, dynamic>;
+        final map = Map<String, dynamic>.from(f as Map);
         final vcodec = map['vcodec']?.toString();
         final acodec = map['acodec']?.toString();
         final height = map['height'] as int?;
         final url = map['url']?.toString();
+        final protocol = map['protocol']?.toString() ?? '';
+        final isDirect = protocol.isEmpty || (protocol.startsWith('http') && !protocol.contains('m3u8'));
 
-        if (url == null) continue;
+        if (url == null || !isDirect) continue;
 
-        if (videoUrl == null && vcodec != null && vcodec != 'none' && (height == null || height <= 720)) {
-          videoUrl = url;
-          videoHeight = height;
+        if (vcodec != null && vcodec != 'none' && (acodec == null || acodec == 'none')) {
+          if (height == null || height <= 720) {
+            videoCandidates.add(map);
+          }
+        } else if ((vcodec == null || vcodec == 'none') && acodec != null && acodec != 'none') {
+          audioCandidates.add(map);
+        }
+      }
+
+      if (videoCandidates.isNotEmpty) {
+        // Sort descending by height, but prefer <= 720
+        videoCandidates.sort((a, b) => ((b['height'] as int?) ?? 0).compareTo((a['height'] as int?) ?? 0));
+        // Pick best video (ideally 480p or 720p or 360p)
+        Map<String, dynamic> bestVideo = videoCandidates.first;
+        for (final cand in videoCandidates) {
+          final h = (cand['height'] as int?) ?? 0;
+          if (h <= 720 && h >= 360) {
+            bestVideo = cand;
+            break;
+          }
         }
 
-        if (audioUrl == null && (vcodec == null || vcodec == 'none') && acodec != null && acodec != 'none') {
-          audioUrl = url;
+        videoUrl = bestVideo['url'].toString();
+        videoHeight = bestVideo['height'] as int?;
+        if (bestVideo['http_headers'] is Map) {
+          (bestVideo['http_headers'] as Map).forEach((k, v) => videoHeaders[k.toString()] = v.toString());
         }
+      }
 
-        if (videoUrl != null && audioUrl != null) break;
+      if (audioCandidates.isNotEmpty) {
+        // Sort descending by abr or filesize
+        audioCandidates.sort((a, b) => ((b['abr'] as num?) ?? 0).compareTo((a['abr'] as num?) ?? 0));
+        audioUrl = audioCandidates.first['url']?.toString();
       }
 
       if (videoUrl != null) {
         return PreviewStreamInfo(
           videoUrl: videoUrl,
           audioUrl: audioUrl,
-          httpHeaders: httpHeaders,
-          label: '${videoHeight ?? 720}p (Separate Audio)',
+          httpHeaders: videoHeaders,
+          label: '${videoHeight ?? 720}p (Direct)',
         );
       }
 

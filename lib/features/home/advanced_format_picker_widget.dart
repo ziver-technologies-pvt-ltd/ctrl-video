@@ -3,6 +3,12 @@ import '../../app/theme.dart';
 import '../../models/format_selection.dart';
 import '../../services/format_service.dart';
 
+enum MediaOutputCategory {
+  video,
+  audio,
+  advanced,
+}
+
 class AdvancedFormatPickerWidget extends StatefulWidget {
   final List<StreamItem> streams;
   final FormatSelection initialSelection;
@@ -20,30 +26,55 @@ class AdvancedFormatPickerWidget extends StatefulWidget {
 }
 
 class _AdvancedFormatPickerWidgetState extends State<AdvancedFormatPickerWidget> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool _isAdvancedMode = false;
-  String _simplePreset = 'best';
-  String _selectedContainer = 'mp4';
+  late TabController _advancedTabController;
+  MediaOutputCategory _outputCategory = MediaOutputCategory.video;
 
+  // Video preset options
+  String _videoQualityPreset = 'best';
+  String _videoContainer = 'mp4';
+
+  // Audio preset options
+  String _audioQualityPreset = 'audio_mp3';
+  String _audioContainer = 'mp3';
+
+  // Advanced selection
   StreamItem? _selectedVideoOnly;
   StreamItem? _selectedAudioOnly;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _advancedTabController = TabController(length: 3, vsync: this);
+    if (widget.initialSelection.isAudioOnly) {
+      _outputCategory = MediaOutputCategory.audio;
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _advancedTabController.dispose();
     super.dispose();
   }
 
-  void _emitSimpleSelection() {
+  void _emitVideoSelection() {
     final selection = FormatSelection.simplePreset(
-      _simplePreset,
-      container: _selectedContainer,
+      _videoQualityPreset,
+      container: _videoContainer,
+    );
+    widget.onSelectionChanged(selection);
+  }
+
+  void _emitAudioSelection() {
+    String formatId = 'ba/b';
+    String codec = _audioContainer;
+    String label = 'Audio Only (${_audioContainer.toUpperCase()})';
+
+    final selection = FormatSelection(
+      audioFormatId: formatId,
+      container: _audioContainer,
+      isAudioOnly: true,
+      audioCodec: codec,
+      label: label,
     );
     widget.onSelectionChanged(selection);
   }
@@ -53,11 +84,11 @@ class _AdvancedFormatPickerWidgetState extends State<AdvancedFormatPickerWidget>
       final selection = FormatSelection(
         videoFormatId: _selectedVideoOnly!.formatId,
         audioFormatId: _selectedAudioOnly!.formatId,
-        container: _selectedContainer,
+        container: _videoContainer,
         label: '${_selectedVideoOnly!.resolutionLabel} (${_selectedVideoOnly!.codecLabel}) + ${_selectedAudioOnly!.codecLabel}',
       );
       widget.onSelectionChanged(selection);
-    } else if (_selectedAudioOnly != null && _tabController.index == 2) {
+    } else if (_selectedAudioOnly != null && _advancedTabController.index == 2) {
       final selection = FormatSelection(
         audioFormatId: _selectedAudioOnly!.formatId,
         container: _selectedAudioOnly!.ext,
@@ -79,34 +110,82 @@ class _AdvancedFormatPickerWidgetState extends State<AdvancedFormatPickerWidget>
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Mode Switcher Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: false, label: Text('Simple Preset')),
-                ButtonSegment(value: true, label: Text('Advanced Streams')),
-              ],
-              selected: {_isAdvancedMode},
-              onSelectionChanged: (set) {
-                setState(() {
-                  _isAdvancedMode = set.first;
-                });
-                if (!_isAdvancedMode) {
-                  _emitSimpleSelection();
-                }
-              },
+        // Top-Level Media Category Toggle: [ 🎬 Video ] [ 🎵 Audio Only ] [ ⚙ Advanced ]
+        SegmentedButton<MediaOutputCategory>(
+          style: const ButtonStyle(visualDensity: VisualDensity.compact),
+          segments: const [
+            ButtonSegment(
+              value: MediaOutputCategory.video,
+              icon: Icon(Icons.videocam_rounded, size: 16),
+              label: Text('Video'),
             ),
+            ButtonSegment(
+              value: MediaOutputCategory.audio,
+              icon: Icon(Icons.music_note_rounded, size: 16),
+              label: Text('Audio Only'),
+            ),
+            ButtonSegment(
+              value: MediaOutputCategory.advanced,
+              icon: Icon(Icons.tune_rounded, size: 16),
+              label: Text('Advanced'),
+            ),
+          ],
+          selected: {_outputCategory},
+          onSelectionChanged: (set) {
+            setState(() {
+              _outputCategory = set.first;
+            });
+            if (_outputCategory == MediaOutputCategory.video) {
+              _emitVideoSelection();
+            } else if (_outputCategory == MediaOutputCategory.audio) {
+              _emitAudioSelection();
+            } else {
+              _emitAdvancedSelection();
+            }
+          },
+        ),
 
-            // Container Picker
-            Row(
-              children: [
-                Text('Format: ', style: theme.textTheme.bodySmall),
-                DropdownButton<String>(
-                  value: _selectedContainer,
-                  underline: const SizedBox.shrink(),
+        const SizedBox(height: 12),
+
+        // 1. VIDEO MODE CONTROLS
+        if (_outputCategory == MediaOutputCategory.video) ...[
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: DropdownButtonFormField<String>(
+                  isDense: true,
+                  value: _videoQualityPreset,
+                  decoration: const InputDecoration(
+                    labelText: 'Video Quality',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'best', child: Text('Best Available Quality (Auto)')),
+                    DropdownMenuItem(value: '1080p', child: Text('1080p Full HD')),
+                    DropdownMenuItem(value: '720p', child: Text('720p HD')),
+                    DropdownMenuItem(value: '480p', child: Text('480p SD')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _videoQualityPreset = val);
+                      _emitVideoSelection();
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  isDense: true,
+                  value: _videoContainer,
+                  decoration: const InputDecoration(
+                    labelText: 'Container',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
                   items: const [
                     DropdownMenuItem(value: 'mp4', child: Text('MP4')),
                     DropdownMenuItem(value: 'mkv', child: Text('MKV')),
@@ -114,102 +193,105 @@ class _AdvancedFormatPickerWidgetState extends State<AdvancedFormatPickerWidget>
                   ],
                   onChanged: (val) {
                     if (val != null) {
-                      setState(() => _selectedContainer = val);
-                      if (_isAdvancedMode) {
-                        _emitAdvancedSelection();
-                      } else {
-                        _emitSimpleSelection();
-                      }
+                      setState(() => _videoContainer = val);
+                      _emitVideoSelection();
                     }
                   },
                 ),
-              ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 14),
-
-        // Simple Mode View
-        if (!_isAdvancedMode) ...[
-          DropdownButtonFormField<String>(
-            value: _simplePreset,
-            decoration: const InputDecoration(
-              labelText: 'Quality & Output Option',
-            ),
-            items: const [
-              DropdownMenuItem(value: 'best', child: Text('Best Available Quality (Auto)')),
-              DropdownMenuItem(value: '1080p', child: Text('1080p Full HD')),
-              DropdownMenuItem(value: '720p', child: Text('720p HD')),
-              DropdownMenuItem(value: '480p', child: Text('480p SD')),
-              DropdownMenuItem(value: 'audio_mp3', child: Text('Audio Only (MP3 High Quality)')),
-              DropdownMenuItem(value: 'audio_m4a', child: Text('Audio Only (M4A / AAC)')),
-              DropdownMenuItem(value: 'audio_opus', child: Text('Audio Only (Opus)')),
-              DropdownMenuItem(value: 'audio_flac', child: Text('Audio Only (Lossless FLAC)')),
+              ),
             ],
-            onChanged: (val) {
-              if (val != null) {
-                setState(() => _simplePreset = val);
-                _emitSimpleSelection();
-              }
-            },
           ),
-        ] else ...[
-          // Advanced Mode Stream Tables
+        ]
+        // 2. AUDIO ONLY MODE CONTROLS
+        else if (_outputCategory == MediaOutputCategory.audio) ...[
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: DropdownButtonFormField<String>(
+                  isDense: true,
+                  value: _audioContainer,
+                  decoration: const InputDecoration(
+                    labelText: 'Audio Format',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'mp3', child: Text('MP3 (Universal Audio)')),
+                    DropdownMenuItem(value: 'm4a', child: Text('M4A / AAC (Apple/Standard)')),
+                    DropdownMenuItem(value: 'flac', child: Text('FLAC (Lossless Audio)')),
+                    DropdownMenuItem(value: 'opus', child: Text('Opus (High Efficiency)')),
+                    DropdownMenuItem(value: 'wav', child: Text('WAV (Uncompressed PCM)')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _audioContainer = val);
+                      _emitAudioSelection();
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  isDense: true,
+                  value: _audioQualityPreset,
+                  decoration: const InputDecoration(
+                    labelText: 'Quality',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'audio_mp3', child: Text('Best (320k)')),
+                    DropdownMenuItem(value: 'audio_m4a', child: Text('Standard (192k)')),
+                    DropdownMenuItem(value: 'audio_opus', child: Text('Voice (128k)')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _audioQualityPreset = val);
+                      _emitAudioSelection();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ]
+        // 3. ADVANCED MODE WITH STREAMS TABLE
+        else ...[
           TabBar(
-            controller: _tabController,
+            controller: _advancedTabController,
             labelColor: AppColors.accent,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
             indicatorColor: AppColors.accent,
+            isScrollable: true,
             tabs: [
-              Tab(text: 'Video (${videoOnly.length})'),
-              Tab(text: 'Audio (${audioOnly.length})'),
               Tab(text: 'Combined (${combined.length})'),
+              Tab(text: 'Video Only (${videoOnly.length})'),
+              Tab(text: 'Audio Only (${audioOnly.length})'),
             ],
           ),
           const SizedBox(height: 8),
-
           SizedBox(
             height: 180,
             child: TabBarView(
-              controller: _tabController,
+              controller: _advancedTabController,
               children: [
-                // Video Only List
-                _buildStreamList(
-                  videoOnly,
-                  selectedId: _selectedVideoOnly?.formatId,
-                  onSelect: (item) {
-                    setState(() => _selectedVideoOnly = item);
-                    _emitAdvancedSelection();
-                  },
-                ),
-
-                // Audio Only List
-                _buildStreamList(
-                  audioOnly,
-                  selectedId: _selectedAudioOnly?.formatId,
-                  onSelect: (item) {
-                    setState(() => _selectedAudioOnly = item);
-                    _emitAdvancedSelection();
-                  },
-                ),
-
-                // Combined List
-                _buildStreamList(
-                  combined,
-                  selectedId: _selectedVideoOnly?.formatId,
-                  onSelect: (item) {
-                    setState(() {
-                      _selectedVideoOnly = item;
-                      _selectedAudioOnly = null;
-                    });
-                    final selection = FormatSelection(
-                      videoFormatId: item.formatId,
-                      container: item.ext,
-                      label: '${item.resolutionLabel} (${item.codecLabel})',
-                    );
-                    widget.onSelectionChanged(selection);
-                  },
-                ),
+                _buildStreamList(combined, onSelect: (s) {
+                  final sel = FormatSelection(
+                    videoFormatId: s.formatId,
+                    container: s.ext,
+                    label: '${s.resolutionLabel} (${s.codecLabel})',
+                  );
+                  widget.onSelectionChanged(sel);
+                }),
+                _buildStreamList(videoOnly, selectedId: _selectedVideoOnly?.formatId, onSelect: (s) {
+                  setState(() => _selectedVideoOnly = s);
+                  _emitAdvancedSelection();
+                }),
+                _buildStreamList(audioOnly, selectedId: _selectedAudioOnly?.formatId, onSelect: (s) {
+                  setState(() => _selectedAudioOnly = s);
+                  _emitAdvancedSelection();
+                }),
               ],
             ),
           ),
@@ -224,41 +306,48 @@ class _AdvancedFormatPickerWidgetState extends State<AdvancedFormatPickerWidget>
     required ValueChanged<StreamItem> onSelect,
   }) {
     if (items.isEmpty) {
-      return const Center(child: Text('No streams available in this category'));
+      return const Center(
+        child: Text('No matching streams found for this video.'),
+      );
     }
 
     return ListView.builder(
       itemCount: items.length,
-      itemBuilder: (context, index) {
-        final stream = items[index];
-        final isSelected = stream.formatId == selectedId;
+      itemBuilder: (context, idx) {
+        final item = items[idx];
+        final isSelected = item.formatId == selectedId;
 
-        return ListTile(
-          dense: true,
-          selected: isSelected,
-          selectedTileColor: AppColors.accent.withValues(alpha: 0.15),
-          leading: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        return InkWell(
+          onTap: () => onSelect(item),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.accent : Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(4),
+              color: isSelected ? AppColors.accent.withValues(alpha: 0.15) : null,
+              border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 0.5)),
             ),
-            child: Text(
-              stream.resolutionLabel,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.black : null,
-              ),
+            child: Row(
+              children: [
+                if (isSelected) const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.accent)
+                else const SizedBox(width: 14),
+                const SizedBox(width: 8),
+                Text(item.resolutionLabel, style: AppTheme.monoStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12)),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(item.ext.toUpperCase(), style: const TextStyle(fontSize: 10)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(item.codecLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                ),
+                Text(item.formattedSize, style: AppTheme.monoStyle.copyWith(fontSize: 11)),
+              ],
             ),
           ),
-          title: Text('${stream.codecLabel} • ${stream.ext.toUpperCase()}'),
-          subtitle: Text('${stream.dynamicRange} • ${stream.fps != null ? "${stream.fps}fps" : ""}'),
-          trailing: Text(
-            stream.formattedSize,
-            style: AppTheme.monoStyle.copyWith(fontSize: 11),
-          ),
-          onTap: () => onSelect(stream),
         );
       },
     );

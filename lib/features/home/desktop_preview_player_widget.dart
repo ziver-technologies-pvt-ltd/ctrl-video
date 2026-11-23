@@ -54,6 +54,15 @@ class _DesktopPreviewPlayerWidgetState extends State<DesktopPreviewPlayerWidget>
       httpHeaders: widget.streamInfo.httpHeaders,
     );
     await _player.open(media);
+    if (widget.streamInfo.audioUrl != null) {
+      await _player.setAudioTrack(
+        AudioTrack.uri(
+          widget.streamInfo.audioUrl!,
+          title: 'Audio Stream',
+          language: 'en',
+        ),
+      );
+    }
   }
 
   @override

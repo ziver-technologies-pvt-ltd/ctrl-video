@@ -114,8 +114,9 @@ class DownloadExecutionService {
         arguments: args,
         onStdoutLine: (line) {
           final trimmed = line.trim();
-          if (trimmed.startsWith('download:')) {
-            final parts = trimmed.replaceFirst('download:', '').split('|');
+          if (trimmed.contains('|') && (trimmed.startsWith('download:') || trimmed.contains('%'))) {
+            final clean = trimmed.replaceFirst('download:', '').trim();
+            final parts = clean.split('|');
             if (parts.length >= 3) {
               final rawPercent = parts[0].replaceAll('%', '').trim();
               final percent = double.tryParse(rawPercent) ?? 0.0;
