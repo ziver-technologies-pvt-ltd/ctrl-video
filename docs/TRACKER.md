@@ -9,8 +9,8 @@
 ## Overall Progress Summary
 - [x] **Project Planning**: Product name confirmed (`ctrl+video`), MVP plan updated.
 - [x] **Dev Environment**: Fedora Linux desktop toolchain installed and verified (`flutter doctor` all checks green).
-- [ ] **Milestone 1: Scaffold & Engine Foundation**: In Progress
-- [ ] **Milestone 2: Metadata & Single Download Pipeline**: Pending
+- [x] **Milestone 1: Scaffold, UI System & Engine Foundation**: Completed
+- [x] **Milestone 2: Metadata & Single Download Pipeline**: Completed
 - [ ] **Milestone 3: Queue, Concurrency & Drift DB**: Pending
 - [ ] **Milestone 4: Engine Update & Diagnostics**: Pending
 - [ ] **Milestone 5: Multi-Platform Packaging & CI**: Pending
@@ -30,11 +30,12 @@
 - [x] **Task 1.8**: Create desktop shell navigation rail (Download, Queue, History, Settings) with live engine status bar.
 
 ### Milestone 2: URL Metadata & Single Download Pipeline
-- [ ] **Task 2.1**: Implement `MetadataService` and `MediaInfo` model parsing.
-- [ ] **Task 2.2**: Build URL validation and domain allowlist filter.
-- [ ] **Task 2.3**: Build UI Home screen with URL input, clipboard detection, preview card.
-- [ ] **Task 2.4**: Implement download runner with real-time stdout progress parser.
-- [ ] **Task 2.5**: Implement `ErrorClassifier` with user-friendly error mappings.
+- [x] **Task 2.1**: Implement `MetadataService` and `MediaInfo` model parsing.
+- [x] **Task 2.2**: Build URL validation and domain allowlist filter (YouTube, Instagram, Facebook).
+- [x] **Task 2.3**: Build UI Download screen with URL input, clipboard auto-detection, and media preview card.
+- [x] **Task 2.4**: Implement download execution with real-time stdout progress parser (`--progress-template`).
+- [x] **Task 2.5**: Implement `ErrorClassifier` with user-friendly error mappings for all major failure modes.
+- [x] **Task 2.6**: Unit and widget tests for URL validation, error classification, and download screen.
 
 ### Milestone 3: Queue Management, History & Persistence
 - [ ] **Task 3.1**: Setup Drift SQLite database and schema.

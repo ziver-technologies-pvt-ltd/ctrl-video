@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/theme.dart';
+import 'features/home/download_screen.dart';
 import 'services/engine_manager.dart';
 
 // Riverpod providers for core singletons
@@ -188,7 +189,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   Widget _buildCurrentView(int index) {
     switch (index) {
       case 0:
-        return _buildPlaceholderView('Paste link to start download', Icons.link_rounded);
+        return const DownloadScreen();
       case 1:
         return _buildPlaceholderView('No active downloads in queue', Icons.inbox_outlined);
       case 2:
