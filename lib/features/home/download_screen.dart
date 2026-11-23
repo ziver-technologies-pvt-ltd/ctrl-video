@@ -8,9 +8,11 @@ import '../../services/download_execution_service.dart';
 import '../../services/error_classifier.dart';
 import '../../services/format_service.dart';
 import '../../services/metadata_service.dart';
+import '../../services/preview_service.dart';
 import '../../services/trim_service.dart';
 import '../../main.dart';
 import 'advanced_format_picker_widget.dart';
+import 'desktop_preview_player_widget.dart';
 import 'timeline_trim_widget.dart';
 
 final metadataServiceProvider = Provider<MetadataService>((ref) {
@@ -34,6 +36,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   final TextEditingController _urlController = TextEditingController();
   bool _isLoadingMetadata = false;
   MediaInfo? _mediaInfo;
+  PreviewStreamInfo? _previewStream;
   FormatOption? _selectedFormat;
   FormatSelection _formatSelection = FormatSelection.simplePreset('best');
   TrimRange? _trimRange;
@@ -240,96 +243,32 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                   ),
                 ),
 
-              // Preview Card
+              // Preview Card & Two-Pane Workspace
               if (_mediaInfo != null) ...[
-                Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 820;
+
+                    final leftPane = Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Thumbnail Preview
-                            if (_mediaInfo!.thumbnailUrl != null)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  _mediaInfo!.thumbnailUrl!,
-                                  width: 140,
-                                  height: 85,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: 140,
-                                    height: 85,
-                                    color: theme.colorScheme.surfaceContainerHighest,
-                                    child: const Icon(Icons.movie_outlined),
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(width: 16),
-
-                            // Video Info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _mediaInfo!.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primaryContainer,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          _mediaInfo!.platform,
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: theme.colorScheme.onPrimaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      if (_mediaInfo!.uploader != null) ...[
-                                        Text(
-                                          _mediaInfo!.uploader!,
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            color: theme.colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                      ],
-                                      if (_mediaInfo!.formattedDuration.isNotEmpty)
-                                        Text(
-                                          _mediaInfo!.formattedDuration,
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            color: theme.colorScheme.outline,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                        // In-App Desktop Preview Player
+                        if (_previewStream != null)
+                          DesktopPreviewPlayerWidget(streamInfo: _previewStream!)
+                        else if (_mediaInfo!.thumbnailUrl != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              _mediaInfo!.thumbnailUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                             ),
-                          ],
-                        ),
+                          ),
 
-                        const Divider(height: 28),
+                        const SizedBox(height: 14),
 
                         // Interactive Video Trimming Widget
-                        if (_mediaInfo!.durationSeconds != null && _mediaInfo!.durationSeconds! > 0) ...[
+                        if (_mediaInfo!.durationSeconds != null && _mediaInfo!.durationSeconds! > 0)
                           TimelineTrimWidget(
                             totalDuration: Duration(seconds: _mediaInfo!.durationSeconds!),
                             currentPosition: Duration.zero,
@@ -337,76 +276,108 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                               setState(() => _trimRange = range);
                             },
                           ),
-                          const SizedBox(height: 16),
-                        ],
+                      ],
+                    );
 
-                        // Advanced Format Selector & Container Switcher
-                        AdvancedFormatPickerWidget(
-                          streams: const [],
-                          initialSelection: _formatSelection,
-                          onSelectionChanged: (selection) {
-                            setState(() {
-                              _formatSelection = selection;
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.accent,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            onPressed: _startDownload,
-                            icon: const Icon(Icons.download_rounded),
-                            label: const Text('Download', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-
-                        // Active Download Progress & Metrics
-                        if (_isDownloading || _isCompleted) ...[
-                          const SizedBox(height: 20),
-                          LinearProgressIndicator(
-                            value: _isCompleted ? 1.0 : (_progress.percent / 100.0).clamp(0.0, 1.0),
-                            minHeight: 8,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _isCompleted
-                                    ? 'Completed! Saved to downloads.'
-                                    : '${_progress.percent.toStringAsFixed(1)}% • Speed: ${_progress.speed}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: _isCompleted ? Colors.green : theme.colorScheme.onSurfaceVariant,
-                                  fontWeight: _isCompleted ? FontWeight.bold : FontWeight.normal,
-                                ),
+                    final rightPane = Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _mediaInfo!.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              if (_isDownloading) ...[
-                                Text(
-                                  'ETA: ${_progress.eta}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _mediaInfo!.platform,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: _cancelDownload,
-                                  child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-                                ),
+                                const SizedBox(width: 8),
+                                if (_mediaInfo!.uploader != null)
+                                  Expanded(
+                                    child: Text(
+                                      _mediaInfo!.uploader!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
                               ],
-                            ],
-                          ),
+                            ),
+
+                            const Divider(height: 28),
+
+                            // Advanced Format Selector & Container Switcher
+                            AdvancedFormatPickerWidget(
+                              streams: const [],
+                              initialSelection: _formatSelection,
+                              onSelectionChanged: (selection) {
+                                setState(() {
+                                  _formatSelection = selection;
+                                });
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.accent,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: _startDownload,
+                                icon: const Icon(Icons.download_rounded),
+                                label: const Text('Download', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    if (isWide) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 5, child: leftPane),
+                          const SizedBox(width: 20),
+                          Expanded(flex: 4, child: rightPane),
                         ],
-                      ],
-                    ),
-                  ),
+                      );
+                    } else {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          leftPane,
+                          const SizedBox(height: 16),
+                          rightPane,
+                        ],
+                      );
+                    }
+                  },
                 ),
               ],
             ],

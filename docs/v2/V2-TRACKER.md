@@ -2,18 +2,18 @@
 
 | Version | Status | Active Branch | Signal Accent | Player Engine |
 |---|---|---|---|---|
-| **v2.0-dev** | Planning / Scaffolding | `feature/v2-foundation` | Warm Amber (`0xFFF59E0B`) | `media_kit` (libmpv) |
+| **v2.0-complete** | Ready for Review | `feature/v2-foundation` | Warm Amber (`0xFFF59E0B`) | `media_kit` (libmpv) |
 
 ---
 
 ## Overall v2 Progress Summary
 - [x] **v2 Scope & Planning**: Documented in `docs/V2-PLAN.md` & `docs/V2-MILESTONES.md`.
 - [x] **v2 Branching**: Created dedicated `feature/v2-foundation` branch.
-- [ ] **Milestone 2.1: Design System & Drift DB Migration**: In Progress
-- [ ] **Milestone 2.2: Advanced Format & Codec Selection**: Pending
-- [ ] **Milestone 2.3: In-App Preview Player (`media_kit`)**: Pending
-- [ ] **Milestone 2.4: Frame-Accurate Video Trimming**: Pending
-- [ ] **Milestone 2.5: Two-Pane Workspace, Command Palette & Polish**: Pending
+- [x] **Milestone 2.1: Design System & Drift DB Migration**: Complete
+- [x] **Milestone 2.2: Advanced Format & Codec Selection**: Complete
+- [x] **Milestone 2.3: In-App Preview Player (`media_kit`)**: Complete
+- [x] **Milestone 2.4: Frame-Accurate Video Trimming**: Complete
+- [x] **Milestone 2.5: Two-Pane Workspace, Command Palette & Polish**: Complete
 
 ---
 
@@ -45,10 +45,10 @@
 - [x] **Task 2.4.5**: Add unit tests for trim range validation, timecode formatting, and section argument generation.
 
 ### Milestone 2.5: UI Workspace Redesign, Command Palette & Polish
-- [ ] **Task 2.5.1**: Build two-pane responsive workspace (player/trim on left, download options on right).
-- [ ] **Task 2.5.2**: Implement `Ctrl+K` / `Cmd+K` global command palette.
-- [ ] **Task 2.5.3**: Accessibility and motion review (WCAG AA contrast, reduced motion).
-- [ ] **Task 2.5.4**: Run acceptance test suite on Linux release build.
+- [x] **Task 2.5.1**: Build two-pane responsive workspace (player/trim on left, download options on right).
+- [x] **Task 2.5.2**: Implement `Ctrl+K` / `Cmd+K` global command palette with fuzzy navigation, clipboard quick-paste, and queue actions.
+- [x] **Task 2.5.3**: Accessibility and motion review (WCAG AA contrast, reduced motion, tactile monochrome surfaces).
+- [x] **Task 2.5.4**: Run full acceptance test suite and release build verification (`flutter build linux --release`).
 
 ---
 
@@ -57,3 +57,4 @@
 - **2026-11-24**: Locked **`media_kit`** (libmpv) as the preview player engine for full codec support and separate audio track attachment.
 - **2026-11-24**: Selected **Warm Amber** (`0xFFF59E0B`) as the single signal accent token over monochrome surfaces.
 - **2026-11-24**: Defined trimming heuristics: Exact mode for short cuts (< 5 min), Fast mode (keyframe snap) recommended for long ranges.
+- **2026-11-24**: Implemented `Ctrl+K` command palette with search-filtered actions and keyboard navigation.
