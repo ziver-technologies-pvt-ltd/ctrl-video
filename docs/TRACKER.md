@@ -11,7 +11,7 @@
 - [x] **Dev Environment**: Fedora Linux desktop toolchain installed and verified (`flutter doctor` all checks green).
 - [x] **Milestone 1: Scaffold, UI System & Engine Foundation**: Completed
 - [x] **Milestone 2: Metadata & Single Download Pipeline**: Completed
-- [ ] **Milestone 3: Queue, Concurrency & Drift DB**: Pending
+- [x] **Milestone 3: Queue Management, History & Persistence**: Completed
 - [ ] **Milestone 4: Engine Update & Diagnostics**: Pending
 - [ ] **Milestone 5: Multi-Platform Packaging & CI**: Pending
 
@@ -38,11 +38,13 @@
 - [x] **Task 2.6**: Unit and widget tests for URL validation, error classification, and download screen.
 
 ### Milestone 3: Queue Management, History & Persistence
-- [ ] **Task 3.1**: Setup Drift SQLite database and schema.
-- [ ] **Task 3.2**: Implement `DownloadManager` queue with concurrency control.
-- [ ] **Task 3.3**: Build Queue UI screen with cancel and retry actions.
-- [ ] **Task 3.4**: Build History UI screen with file/folder openers.
-- [ ] **Task 3.5**: Build Settings UI screen with folder picker and preferences.
+- [x] **Task 3.1**: Create Drift SQLite schema: `DownloadHistory` table and `Settings` table (`lib/data/database.dart`).
+- [x] **Task 3.2**: Run code generation with `build_runner` to produce `database.g.dart`.
+- [x] **Task 3.3**: Implement `DownloadManager` service with priority queue, max concurrency (2 items), cancellation, retry, and history persistence.
+- [x] **Task 3.4**: Build Queue UI screen (`lib/features/queue/queue_screen.dart`) displaying active progress, waiting tasks, and cancel/retry actions.
+- [x] **Task 3.5**: Build History UI screen (`lib/features/history/history_screen.dart`) with search, "Open File", "Open Folder", and "Delete".
+- [x] **Task 3.6**: Build Settings UI screen (`lib/features/settings/settings_screen.dart`) with folder picker, default quality selection, and engine status check.
+- [x] **Task 3.7**: Unit and widget tests for database operations and queue lifecycle.
 
 ### Milestone 4: Engine Auto-Update, Diagnostics & Self-Healing
 - [ ] **Task 4.1**: Implement GitHub release fetch and SHA-256 verification in `EngineManager`.

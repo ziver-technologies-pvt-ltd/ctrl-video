@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/theme.dart';
+import 'data/database.dart';
+import 'features/history/history_screen.dart';
 import 'features/home/download_screen.dart';
+import 'features/queue/queue_screen.dart';
+import 'features/settings/settings_screen.dart';
+import 'services/download_execution_service.dart';
+import 'services/download_manager.dart';
 import 'services/engine_manager.dart';
 
-// Riverpod providers for core singletons
+// Riverpod singletons
+final databaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
+
 final engineManagerProvider = Provider<EngineManager>((ref) {
   return EngineManager();
+});
+
+final downloadManagerProvider = ChangeNotifierProvider<DownloadManager>((ref) {
+  final db = ref.watch(databaseProvider);
+  final execution = ref.watch(downloadExecutionServiceProvider);
+  return DownloadManager(db: db, executionService: execution);
 });
 
 final engineStatusFutureProvider = FutureProvider<bool>((ref) async {
@@ -48,11 +66,13 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final engineReadyAsync = ref.watch(engineStatusFutureProvider);
+    final queue = ref.watch(downloadManagerProvider).queue;
+    final activeDownloads = queue.where((q) => q.status == DownloadStatus.downloading).length;
 
     return Scaffold(
       body: Row(
         children: [
-          // Desktop Navigation Rail
+          // Navigation Rail
           NavigationRail(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (int index) {
@@ -69,23 +89,31 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
                 height: 36,
               ),
             ),
-            destinations: const [
-              NavigationRailDestination(
+            destinations: [
+              const NavigationRailDestination(
                 icon: Icon(Icons.download_outlined),
                 selectedIcon: Icon(Icons.download),
                 label: Text('Download'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.queue_outlined),
-                selectedIcon: Icon(Icons.queue),
+                icon: Badge(
+                  isLabelVisible: activeDownloads > 0,
+                  label: Text('$activeDownloads'),
+                  child: const Icon(Icons.queue_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: activeDownloads > 0,
+                  label: Text('$activeDownloads'),
+                  child: const Icon(Icons.queue),
+                ),
                 label: Text('Queue'),
               ),
-              NavigationRailDestination(
+              const NavigationRailDestination(
                 icon: Icon(Icons.history_outlined),
                 selectedIcon: Icon(Icons.history),
                 label: Text('History'),
               ),
-              NavigationRailDestination(
+              const NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
                 label: Text('Settings'),
@@ -94,11 +122,11 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
 
-          // Main Screen Area
+          // Main Area
           Expanded(
             child: Column(
               children: [
-                // Top App Bar
+                // Top Bar
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   decoration: BoxDecoration(
@@ -174,7 +202,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
                   ),
                 ),
 
-                // Content View according to selected tab
+                // View Selection
                 Expanded(
                   child: _buildCurrentView(_selectedIndex),
                 ),
@@ -191,31 +219,13 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
       case 0:
         return const DownloadScreen();
       case 1:
-        return _buildPlaceholderView('No active downloads in queue', Icons.inbox_outlined);
+        return const QueueScreen();
       case 2:
-        return _buildPlaceholderView('No download history yet', Icons.history_rounded);
+        return const HistoryScreen();
       case 3:
-        return _buildPlaceholderView('Settings and configurations', Icons.tune_rounded);
+        return const SettingsScreen();
       default:
         return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildPlaceholderView(String label, IconData icon) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: Theme.of(context).colorScheme.outline),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
-    );
   }
 }

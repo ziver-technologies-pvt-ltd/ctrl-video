@@ -105,38 +105,28 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   Future<void> _startDownload() async {
     if (_mediaInfo == null || _selectedFormat == null) return;
 
-    setState(() {
-      _isDownloading = true;
-      _errorMessage = null;
-      _isCompleted = false;
-      _progress = const DownloadProgress();
-    });
-
     try {
-      final service = ref.read(downloadExecutionServiceProvider);
-      await service.startDownload(
+      final queueItem = await ref.read(downloadManagerProvider).enqueue(
         mediaInfo: _mediaInfo!,
         format: _selectedFormat!,
-        onProgress: (p) {
-          setState(() {
-            _progress = p;
-          });
-        },
       );
 
-      setState(() {
-        _isDownloading = false;
-        _isCompleted = true;
-      });
-    } on ClassifiedError catch (e) {
-      setState(() {
-        _isDownloading = false;
-        _errorMessage = e.userMessage;
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added "${_mediaInfo!.title}" to queue.'),
+            action: SnackBarAction(
+              label: 'View Queue',
+              onPressed: () {
+                // User can navigate to queue
+              },
+            ),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
-        _isDownloading = false;
-        _errorMessage = 'Download failed: $e';
+        _errorMessage = 'Failed to enqueue download: $e';
       });
     }
   }
