@@ -16,10 +16,19 @@ class DownloadRecords extends Table {
   TextColumn get filePath => text().nullable()();
   TextColumn get formatLabel => text()();
   IntColumn get sizeBytes => integer().nullable()();
-  TextColumn get status => text()(); // 'completed', 'failed', 'cancelled'
+  TextColumn get status => text()(); // 'completed', 'failed', 'cancelled', 'pending'
   TextColumn get errorCode => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get completedAt => dateTime().nullable()();
+
+  // --- v2 New Columns ---
+  TextColumn get videoFormatId => text().nullable()();
+  TextColumn get audioFormatId => text().nullable()();
+  TextColumn get container => text().nullable()();
+  TextColumn get audioCodec => text().nullable()();
+  IntColumn get trimStartMs => integer().nullable()();
+  IntColumn get trimEndMs => integer().nullable()();
+  TextColumn get trimMode => text().nullable()(); // 'exact' or 'fast'
 }
 
 /// Table storing application settings key-value pairs.
@@ -36,7 +45,26 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // v1 -> v2 migration: Add format and trim columns
+            await m.addColumn(downloadRecords, downloadRecords.videoFormatId);
+            await m.addColumn(downloadRecords, downloadRecords.audioFormatId);
+            await m.addColumn(downloadRecords, downloadRecords.container);
+            await m.addColumn(downloadRecords, downloadRecords.audioCodec);
+            await m.addColumn(downloadRecords, downloadRecords.trimStartMs);
+            await m.addColumn(downloadRecords, downloadRecords.trimEndMs);
+            await m.addColumn(downloadRecords, downloadRecords.trimMode);
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() {
     return LazyDatabase(() async {

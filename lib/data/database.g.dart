@@ -138,6 +138,83 @@ class $DownloadRecordsTable extends DownloadRecords
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _videoFormatIdMeta = const VerificationMeta(
+    'videoFormatId',
+  );
+  @override
+  late final GeneratedColumn<String> videoFormatId = GeneratedColumn<String>(
+    'video_format_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _audioFormatIdMeta = const VerificationMeta(
+    'audioFormatId',
+  );
+  @override
+  late final GeneratedColumn<String> audioFormatId = GeneratedColumn<String>(
+    'audio_format_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _containerMeta = const VerificationMeta(
+    'container',
+  );
+  @override
+  late final GeneratedColumn<String> container = GeneratedColumn<String>(
+    'container',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _audioCodecMeta = const VerificationMeta(
+    'audioCodec',
+  );
+  @override
+  late final GeneratedColumn<String> audioCodec = GeneratedColumn<String>(
+    'audio_codec',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trimStartMsMeta = const VerificationMeta(
+    'trimStartMs',
+  );
+  @override
+  late final GeneratedColumn<int> trimStartMs = GeneratedColumn<int>(
+    'trim_start_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trimEndMsMeta = const VerificationMeta(
+    'trimEndMs',
+  );
+  @override
+  late final GeneratedColumn<int> trimEndMs = GeneratedColumn<int>(
+    'trim_end_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trimModeMeta = const VerificationMeta(
+    'trimMode',
+  );
+  @override
+  late final GeneratedColumn<String> trimMode = GeneratedColumn<String>(
+    'trim_mode',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -152,6 +229,13 @@ class $DownloadRecordsTable extends DownloadRecords
     errorCode,
     createdAt,
     completedAt,
+    videoFormatId,
+    audioFormatId,
+    container,
+    audioCodec,
+    trimStartMs,
+    trimEndMs,
+    trimMode,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -253,6 +337,57 @@ class $DownloadRecordsTable extends DownloadRecords
         ),
       );
     }
+    if (data.containsKey('video_format_id')) {
+      context.handle(
+        _videoFormatIdMeta,
+        videoFormatId.isAcceptableOrUnknown(
+          data['video_format_id']!,
+          _videoFormatIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('audio_format_id')) {
+      context.handle(
+        _audioFormatIdMeta,
+        audioFormatId.isAcceptableOrUnknown(
+          data['audio_format_id']!,
+          _audioFormatIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('container')) {
+      context.handle(
+        _containerMeta,
+        container.isAcceptableOrUnknown(data['container']!, _containerMeta),
+      );
+    }
+    if (data.containsKey('audio_codec')) {
+      context.handle(
+        _audioCodecMeta,
+        audioCodec.isAcceptableOrUnknown(data['audio_codec']!, _audioCodecMeta),
+      );
+    }
+    if (data.containsKey('trim_start_ms')) {
+      context.handle(
+        _trimStartMsMeta,
+        trimStartMs.isAcceptableOrUnknown(
+          data['trim_start_ms']!,
+          _trimStartMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('trim_end_ms')) {
+      context.handle(
+        _trimEndMsMeta,
+        trimEndMs.isAcceptableOrUnknown(data['trim_end_ms']!, _trimEndMsMeta),
+      );
+    }
+    if (data.containsKey('trim_mode')) {
+      context.handle(
+        _trimModeMeta,
+        trimMode.isAcceptableOrUnknown(data['trim_mode']!, _trimModeMeta),
+      );
+    }
     return context;
   }
 
@@ -310,6 +445,34 @@ class $DownloadRecordsTable extends DownloadRecords
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
       ),
+      videoFormatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}video_format_id'],
+      ),
+      audioFormatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}audio_format_id'],
+      ),
+      container: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}container'],
+      ),
+      audioCodec: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}audio_codec'],
+      ),
+      trimStartMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}trim_start_ms'],
+      ),
+      trimEndMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}trim_end_ms'],
+      ),
+      trimMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}trim_mode'],
+      ),
     );
   }
 
@@ -332,6 +495,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
   final String? errorCode;
   final DateTime createdAt;
   final DateTime? completedAt;
+  final String? videoFormatId;
+  final String? audioFormatId;
+  final String? container;
+  final String? audioCodec;
+  final int? trimStartMs;
+  final int? trimEndMs;
+  final String? trimMode;
   const DownloadRecord({
     required this.id,
     required this.url,
@@ -345,6 +515,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
     this.errorCode,
     required this.createdAt,
     this.completedAt,
+    this.videoFormatId,
+    this.audioFormatId,
+    this.container,
+    this.audioCodec,
+    this.trimStartMs,
+    this.trimEndMs,
+    this.trimMode,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -370,6 +547,27 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || videoFormatId != null) {
+      map['video_format_id'] = Variable<String>(videoFormatId);
+    }
+    if (!nullToAbsent || audioFormatId != null) {
+      map['audio_format_id'] = Variable<String>(audioFormatId);
+    }
+    if (!nullToAbsent || container != null) {
+      map['container'] = Variable<String>(container);
+    }
+    if (!nullToAbsent || audioCodec != null) {
+      map['audio_codec'] = Variable<String>(audioCodec);
+    }
+    if (!nullToAbsent || trimStartMs != null) {
+      map['trim_start_ms'] = Variable<int>(trimStartMs);
+    }
+    if (!nullToAbsent || trimEndMs != null) {
+      map['trim_end_ms'] = Variable<int>(trimEndMs);
+    }
+    if (!nullToAbsent || trimMode != null) {
+      map['trim_mode'] = Variable<String>(trimMode);
     }
     return map;
   }
@@ -398,6 +596,27 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
+      videoFormatId: videoFormatId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(videoFormatId),
+      audioFormatId: audioFormatId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(audioFormatId),
+      container: container == null && nullToAbsent
+          ? const Value.absent()
+          : Value(container),
+      audioCodec: audioCodec == null && nullToAbsent
+          ? const Value.absent()
+          : Value(audioCodec),
+      trimStartMs: trimStartMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trimStartMs),
+      trimEndMs: trimEndMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trimEndMs),
+      trimMode: trimMode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trimMode),
     );
   }
 
@@ -419,6 +638,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
       errorCode: serializer.fromJson<String?>(json['errorCode']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      videoFormatId: serializer.fromJson<String?>(json['videoFormatId']),
+      audioFormatId: serializer.fromJson<String?>(json['audioFormatId']),
+      container: serializer.fromJson<String?>(json['container']),
+      audioCodec: serializer.fromJson<String?>(json['audioCodec']),
+      trimStartMs: serializer.fromJson<int?>(json['trimStartMs']),
+      trimEndMs: serializer.fromJson<int?>(json['trimEndMs']),
+      trimMode: serializer.fromJson<String?>(json['trimMode']),
     );
   }
   @override
@@ -437,6 +663,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
       'errorCode': serializer.toJson<String?>(errorCode),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'videoFormatId': serializer.toJson<String?>(videoFormatId),
+      'audioFormatId': serializer.toJson<String?>(audioFormatId),
+      'container': serializer.toJson<String?>(container),
+      'audioCodec': serializer.toJson<String?>(audioCodec),
+      'trimStartMs': serializer.toJson<int?>(trimStartMs),
+      'trimEndMs': serializer.toJson<int?>(trimEndMs),
+      'trimMode': serializer.toJson<String?>(trimMode),
     };
   }
 
@@ -453,6 +686,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
     Value<String?> errorCode = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> completedAt = const Value.absent(),
+    Value<String?> videoFormatId = const Value.absent(),
+    Value<String?> audioFormatId = const Value.absent(),
+    Value<String?> container = const Value.absent(),
+    Value<String?> audioCodec = const Value.absent(),
+    Value<int?> trimStartMs = const Value.absent(),
+    Value<int?> trimEndMs = const Value.absent(),
+    Value<String?> trimMode = const Value.absent(),
   }) => DownloadRecord(
     id: id ?? this.id,
     url: url ?? this.url,
@@ -466,6 +706,17 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
     errorCode: errorCode.present ? errorCode.value : this.errorCode,
     createdAt: createdAt ?? this.createdAt,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    videoFormatId: videoFormatId.present
+        ? videoFormatId.value
+        : this.videoFormatId,
+    audioFormatId: audioFormatId.present
+        ? audioFormatId.value
+        : this.audioFormatId,
+    container: container.present ? container.value : this.container,
+    audioCodec: audioCodec.present ? audioCodec.value : this.audioCodec,
+    trimStartMs: trimStartMs.present ? trimStartMs.value : this.trimStartMs,
+    trimEndMs: trimEndMs.present ? trimEndMs.value : this.trimEndMs,
+    trimMode: trimMode.present ? trimMode.value : this.trimMode,
   );
   DownloadRecord copyWithCompanion(DownloadRecordsCompanion data) {
     return DownloadRecord(
@@ -487,6 +738,21 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
+      videoFormatId: data.videoFormatId.present
+          ? data.videoFormatId.value
+          : this.videoFormatId,
+      audioFormatId: data.audioFormatId.present
+          ? data.audioFormatId.value
+          : this.audioFormatId,
+      container: data.container.present ? data.container.value : this.container,
+      audioCodec: data.audioCodec.present
+          ? data.audioCodec.value
+          : this.audioCodec,
+      trimStartMs: data.trimStartMs.present
+          ? data.trimStartMs.value
+          : this.trimStartMs,
+      trimEndMs: data.trimEndMs.present ? data.trimEndMs.value : this.trimEndMs,
+      trimMode: data.trimMode.present ? data.trimMode.value : this.trimMode,
     );
   }
 
@@ -504,7 +770,14 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
           ..write('status: $status, ')
           ..write('errorCode: $errorCode, ')
           ..write('createdAt: $createdAt, ')
-          ..write('completedAt: $completedAt')
+          ..write('completedAt: $completedAt, ')
+          ..write('videoFormatId: $videoFormatId, ')
+          ..write('audioFormatId: $audioFormatId, ')
+          ..write('container: $container, ')
+          ..write('audioCodec: $audioCodec, ')
+          ..write('trimStartMs: $trimStartMs, ')
+          ..write('trimEndMs: $trimEndMs, ')
+          ..write('trimMode: $trimMode')
           ..write(')'))
         .toString();
   }
@@ -523,6 +796,13 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
     errorCode,
     createdAt,
     completedAt,
+    videoFormatId,
+    audioFormatId,
+    container,
+    audioCodec,
+    trimStartMs,
+    trimEndMs,
+    trimMode,
   );
   @override
   bool operator ==(Object other) =>
@@ -539,7 +819,14 @@ class DownloadRecord extends DataClass implements Insertable<DownloadRecord> {
           other.status == this.status &&
           other.errorCode == this.errorCode &&
           other.createdAt == this.createdAt &&
-          other.completedAt == this.completedAt);
+          other.completedAt == this.completedAt &&
+          other.videoFormatId == this.videoFormatId &&
+          other.audioFormatId == this.audioFormatId &&
+          other.container == this.container &&
+          other.audioCodec == this.audioCodec &&
+          other.trimStartMs == this.trimStartMs &&
+          other.trimEndMs == this.trimEndMs &&
+          other.trimMode == this.trimMode);
 }
 
 class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
@@ -555,6 +842,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
   final Value<String?> errorCode;
   final Value<DateTime> createdAt;
   final Value<DateTime?> completedAt;
+  final Value<String?> videoFormatId;
+  final Value<String?> audioFormatId;
+  final Value<String?> container;
+  final Value<String?> audioCodec;
+  final Value<int?> trimStartMs;
+  final Value<int?> trimEndMs;
+  final Value<String?> trimMode;
   const DownloadRecordsCompanion({
     this.id = const Value.absent(),
     this.url = const Value.absent(),
@@ -568,6 +862,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
     this.errorCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.videoFormatId = const Value.absent(),
+    this.audioFormatId = const Value.absent(),
+    this.container = const Value.absent(),
+    this.audioCodec = const Value.absent(),
+    this.trimStartMs = const Value.absent(),
+    this.trimEndMs = const Value.absent(),
+    this.trimMode = const Value.absent(),
   });
   DownloadRecordsCompanion.insert({
     this.id = const Value.absent(),
@@ -582,6 +883,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
     this.errorCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.videoFormatId = const Value.absent(),
+    this.audioFormatId = const Value.absent(),
+    this.container = const Value.absent(),
+    this.audioCodec = const Value.absent(),
+    this.trimStartMs = const Value.absent(),
+    this.trimEndMs = const Value.absent(),
+    this.trimMode = const Value.absent(),
   }) : url = Value(url),
        platform = Value(platform),
        title = Value(title),
@@ -600,6 +908,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
     Expression<String>? errorCode,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? completedAt,
+    Expression<String>? videoFormatId,
+    Expression<String>? audioFormatId,
+    Expression<String>? container,
+    Expression<String>? audioCodec,
+    Expression<int>? trimStartMs,
+    Expression<int>? trimEndMs,
+    Expression<String>? trimMode,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -614,6 +929,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
       if (errorCode != null) 'error_code': errorCode,
       if (createdAt != null) 'created_at': createdAt,
       if (completedAt != null) 'completed_at': completedAt,
+      if (videoFormatId != null) 'video_format_id': videoFormatId,
+      if (audioFormatId != null) 'audio_format_id': audioFormatId,
+      if (container != null) 'container': container,
+      if (audioCodec != null) 'audio_codec': audioCodec,
+      if (trimStartMs != null) 'trim_start_ms': trimStartMs,
+      if (trimEndMs != null) 'trim_end_ms': trimEndMs,
+      if (trimMode != null) 'trim_mode': trimMode,
     });
   }
 
@@ -630,6 +952,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
     Value<String?>? errorCode,
     Value<DateTime>? createdAt,
     Value<DateTime?>? completedAt,
+    Value<String?>? videoFormatId,
+    Value<String?>? audioFormatId,
+    Value<String?>? container,
+    Value<String?>? audioCodec,
+    Value<int?>? trimStartMs,
+    Value<int?>? trimEndMs,
+    Value<String?>? trimMode,
   }) {
     return DownloadRecordsCompanion(
       id: id ?? this.id,
@@ -644,6 +973,13 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
       errorCode: errorCode ?? this.errorCode,
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
+      videoFormatId: videoFormatId ?? this.videoFormatId,
+      audioFormatId: audioFormatId ?? this.audioFormatId,
+      container: container ?? this.container,
+      audioCodec: audioCodec ?? this.audioCodec,
+      trimStartMs: trimStartMs ?? this.trimStartMs,
+      trimEndMs: trimEndMs ?? this.trimEndMs,
+      trimMode: trimMode ?? this.trimMode,
     );
   }
 
@@ -686,6 +1022,27 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
+    if (videoFormatId.present) {
+      map['video_format_id'] = Variable<String>(videoFormatId.value);
+    }
+    if (audioFormatId.present) {
+      map['audio_format_id'] = Variable<String>(audioFormatId.value);
+    }
+    if (container.present) {
+      map['container'] = Variable<String>(container.value);
+    }
+    if (audioCodec.present) {
+      map['audio_codec'] = Variable<String>(audioCodec.value);
+    }
+    if (trimStartMs.present) {
+      map['trim_start_ms'] = Variable<int>(trimStartMs.value);
+    }
+    if (trimEndMs.present) {
+      map['trim_end_ms'] = Variable<int>(trimEndMs.value);
+    }
+    if (trimMode.present) {
+      map['trim_mode'] = Variable<String>(trimMode.value);
+    }
     return map;
   }
 
@@ -703,7 +1060,14 @@ class DownloadRecordsCompanion extends UpdateCompanion<DownloadRecord> {
           ..write('status: $status, ')
           ..write('errorCode: $errorCode, ')
           ..write('createdAt: $createdAt, ')
-          ..write('completedAt: $completedAt')
+          ..write('completedAt: $completedAt, ')
+          ..write('videoFormatId: $videoFormatId, ')
+          ..write('audioFormatId: $audioFormatId, ')
+          ..write('container: $container, ')
+          ..write('audioCodec: $audioCodec, ')
+          ..write('trimStartMs: $trimStartMs, ')
+          ..write('trimEndMs: $trimEndMs, ')
+          ..write('trimMode: $trimMode')
           ..write(')'))
         .toString();
   }
@@ -948,6 +1312,13 @@ typedef $$DownloadRecordsTableCreateCompanionBuilder =
       Value<String?> errorCode,
       Value<DateTime> createdAt,
       Value<DateTime?> completedAt,
+      Value<String?> videoFormatId,
+      Value<String?> audioFormatId,
+      Value<String?> container,
+      Value<String?> audioCodec,
+      Value<int?> trimStartMs,
+      Value<int?> trimEndMs,
+      Value<String?> trimMode,
     });
 typedef $$DownloadRecordsTableUpdateCompanionBuilder =
     DownloadRecordsCompanion Function({
@@ -963,6 +1334,13 @@ typedef $$DownloadRecordsTableUpdateCompanionBuilder =
       Value<String?> errorCode,
       Value<DateTime> createdAt,
       Value<DateTime?> completedAt,
+      Value<String?> videoFormatId,
+      Value<String?> audioFormatId,
+      Value<String?> container,
+      Value<String?> audioCodec,
+      Value<int?> trimStartMs,
+      Value<int?> trimEndMs,
+      Value<String?> trimMode,
     });
 
 class $$DownloadRecordsTableFilterComposer
@@ -1031,6 +1409,41 @@ class $$DownloadRecordsTableFilterComposer
 
   ColumnFilters<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get videoFormatId => $composableBuilder(
+    column: $table.videoFormatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get audioFormatId => $composableBuilder(
+    column: $table.audioFormatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get container => $composableBuilder(
+    column: $table.container,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get audioCodec => $composableBuilder(
+    column: $table.audioCodec,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get trimStartMs => $composableBuilder(
+    column: $table.trimStartMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get trimEndMs => $composableBuilder(
+    column: $table.trimEndMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get trimMode => $composableBuilder(
+    column: $table.trimMode,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1103,6 +1516,41 @@ class $$DownloadRecordsTableOrderingComposer
     column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get videoFormatId => $composableBuilder(
+    column: $table.videoFormatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get audioFormatId => $composableBuilder(
+    column: $table.audioFormatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get container => $composableBuilder(
+    column: $table.container,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get audioCodec => $composableBuilder(
+    column: $table.audioCodec,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get trimStartMs => $composableBuilder(
+    column: $table.trimStartMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get trimEndMs => $composableBuilder(
+    column: $table.trimEndMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get trimMode => $composableBuilder(
+    column: $table.trimMode,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DownloadRecordsTableAnnotationComposer
@@ -1155,6 +1603,35 @@ class $$DownloadRecordsTableAnnotationComposer
     column: $table.completedAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get videoFormatId => $composableBuilder(
+    column: $table.videoFormatId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get audioFormatId => $composableBuilder(
+    column: $table.audioFormatId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get container =>
+      $composableBuilder(column: $table.container, builder: (column) => column);
+
+  GeneratedColumn<String> get audioCodec => $composableBuilder(
+    column: $table.audioCodec,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get trimStartMs => $composableBuilder(
+    column: $table.trimStartMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get trimEndMs =>
+      $composableBuilder(column: $table.trimEndMs, builder: (column) => column);
+
+  GeneratedColumn<String> get trimMode =>
+      $composableBuilder(column: $table.trimMode, builder: (column) => column);
 }
 
 class $$DownloadRecordsTableTableManager
@@ -1206,6 +1683,13 @@ class $$DownloadRecordsTableTableManager
                 Value<String?> errorCode = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> videoFormatId = const Value.absent(),
+                Value<String?> audioFormatId = const Value.absent(),
+                Value<String?> container = const Value.absent(),
+                Value<String?> audioCodec = const Value.absent(),
+                Value<int?> trimStartMs = const Value.absent(),
+                Value<int?> trimEndMs = const Value.absent(),
+                Value<String?> trimMode = const Value.absent(),
               }) => DownloadRecordsCompanion(
                 id: id,
                 url: url,
@@ -1219,6 +1703,13 @@ class $$DownloadRecordsTableTableManager
                 errorCode: errorCode,
                 createdAt: createdAt,
                 completedAt: completedAt,
+                videoFormatId: videoFormatId,
+                audioFormatId: audioFormatId,
+                container: container,
+                audioCodec: audioCodec,
+                trimStartMs: trimStartMs,
+                trimEndMs: trimEndMs,
+                trimMode: trimMode,
               ),
           createCompanionCallback:
               ({
@@ -1234,6 +1725,13 @@ class $$DownloadRecordsTableTableManager
                 Value<String?> errorCode = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> videoFormatId = const Value.absent(),
+                Value<String?> audioFormatId = const Value.absent(),
+                Value<String?> container = const Value.absent(),
+                Value<String?> audioCodec = const Value.absent(),
+                Value<int?> trimStartMs = const Value.absent(),
+                Value<int?> trimEndMs = const Value.absent(),
+                Value<String?> trimMode = const Value.absent(),
               }) => DownloadRecordsCompanion.insert(
                 id: id,
                 url: url,
@@ -1247,6 +1745,13 @@ class $$DownloadRecordsTableTableManager
                 errorCode: errorCode,
                 createdAt: createdAt,
                 completedAt: completedAt,
+                videoFormatId: videoFormatId,
+                audioFormatId: audioFormatId,
+                container: container,
+                audioCodec: audioCodec,
+                trimStartMs: trimStartMs,
+                trimEndMs: trimEndMs,
+                trimMode: trimMode,
               ),
           withReferenceMapper: (p0) => p0
               .map(

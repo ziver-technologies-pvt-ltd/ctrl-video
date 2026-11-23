@@ -20,10 +20,10 @@
 ## Detailed Task Checklist
 
 ### Milestone 2.1: Design System Redesign & Database Migration
-- [ ] **Task 2.1.1**: Define tactile MD3 design tokens (`surface-0...4`, amber accent, mono typography) in `lib/app/theme.dart`.
-- [ ] **Task 2.1.2**: Update `DownloadRecords` table schema in `lib/data/database.dart` with trim and format columns.
-- [ ] **Task 2.1.3**: Implement Drift schema migration (`schemaVersion = 2`) with unit tests in `test/database_migration_test.dart`.
-- [ ] **Task 2.1.4**: Re-run `build_runner` to update `database.g.dart`.
+- [x] **Task 2.1.1**: Define tactile MD3 design tokens (`surface-0...4`, amber accent, mono typography) in `lib/app/theme.dart`.
+- [x] **Task 2.1.2**: Update `DownloadRecords` table schema in `lib/data/database.dart` with trim and format columns.
+- [x] **Task 2.1.3**: Implement Drift schema migration (`schemaVersion = 2`) with unit tests in `test/v2_database_migration_test.dart`.
+- [x] **Task 2.1.4**: Re-run `build_runner` to update `database.g.dart`.
 
 ### Milestone 2.2: Advanced Format & Codec Selection Engine
 - [ ] **Task 2.2.1**: Implement `FormatSelection` data model with `toYtDlpArgs()` method.
