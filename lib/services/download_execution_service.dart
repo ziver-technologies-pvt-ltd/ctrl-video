@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import '../models/format_selection.dart';
 import '../models/media_info.dart';
 import 'engine_manager.dart';
 import 'error_classifier.dart';
@@ -44,6 +45,7 @@ class DownloadExecutionService {
   Future<String> startDownload({
     required MediaInfo mediaInfo,
     required FormatOption format,
+    FormatSelection? formatSelection,
     Directory? destinationDir,
     required void Function(DownloadProgress progress) onProgress,
   }) async {
@@ -61,7 +63,9 @@ class DownloadExecutionService {
       ],
     ];
 
-    if (format.isAudioOnly) {
+    if (formatSelection != null) {
+      args.addAll(formatSelection.toYtDlpArgs());
+    } else if (format.isAudioOnly) {
       args.addAll([
         '-x',
         '--audio-format',

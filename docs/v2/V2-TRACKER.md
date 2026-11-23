@@ -26,10 +26,10 @@
 - [x] **Task 2.1.4**: Re-run `build_runner` to update `database.g.dart`.
 
 ### Milestone 2.2: Advanced Format & Codec Selection Engine
-- [ ] **Task 2.2.1**: Implement `FormatSelection` data model with `toYtDlpArgs()` method.
-- [ ] **Task 2.2.2**: Build unit test suite for `FormatSelection` argument combinations (MP4, MKV, WebM, MP3, Opus, FLAC).
-- [ ] **Task 2.2.3**: Implement `FormatService` to categorize streams (`Video + Audio`, `Video Only`, `Audio Only`) with codec badges.
-- [ ] **Task 2.2.4**: Build UI segmented control and advanced format selection table.
+- [x] **Task 2.2.1**: Implement `FormatSelection` data model with `toYtDlpArgs()` method.
+- [x] **Task 2.2.2**: Build unit test suite for `FormatSelection` argument combinations (MP4, MKV, WebM, MP3, Opus, FLAC).
+- [x] **Task 2.2.3**: Implement `FormatService` to categorize streams (`Video + Audio`, `Video Only`, `Audio Only`) with codec badges.
+- [x] **Task 2.2.4**: Build UI segmented control and advanced format selection table (`AdvancedFormatPickerWidget`).
 
 ### Milestone 2.3: In-App Preview Player (`media_kit`)
 - [ ] **Task 2.3.1**: Add `media_kit` and `media_kit_video` dependencies to `pubspec.yaml`.

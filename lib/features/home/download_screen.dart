@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../app/theme.dart';
+import '../../models/format_selection.dart';
 import '../../models/media_info.dart';
 import '../../services/download_execution_service.dart';
 import '../../services/error_classifier.dart';
+import '../../services/format_service.dart';
 import '../../services/metadata_service.dart';
 import '../../main.dart';
+import 'advanced_format_picker_widget.dart';
 
 final metadataServiceProvider = Provider<MetadataService>((ref) {
   final engine = ref.watch(engineManagerProvider);
@@ -29,6 +33,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   bool _isLoadingMetadata = false;
   MediaInfo? _mediaInfo;
   FormatOption? _selectedFormat;
+  FormatSelection _formatSelection = FormatSelection.simplePreset('best');
   String? _errorMessage;
 
   // Active download state
@@ -318,43 +323,32 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
 
                         const Divider(height: 28),
 
-                        // Format Selection and Action
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<FormatOption>(
-                                value: _selectedFormat,
-                                isExpanded: true,
-                                decoration: const InputDecoration(
-                                  labelText: 'Choose Quality / Format',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                ),
-                                items: _mediaInfo!.formats.map((f) {
-                                  return DropdownMenuItem(
-                                    value: f,
-                                    child: Text(f.label),
-                                  );
-                                }).toList(),
-                                onChanged: _isDownloading
-                                    ? null
-                                    : (val) {
-                                        setState(() {
-                                          _selectedFormat = val;
-                                        });
-                                      },
-                              ),
+                        // Advanced Format Selector & Container Switcher
+                        AdvancedFormatPickerWidget(
+                          streams: const [],
+                          initialSelection: _formatSelection,
+                          onSelectionChanged: (selection) {
+                            setState(() {
+                              _formatSelection = selection;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.accent,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
-                            const SizedBox(width: 16),
-                            FilledButton.icon(
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: _isDownloading ? null : _startDownload,
-                              icon: const Icon(Icons.download_rounded),
-                              label: const Text('Download'),
-                            ),
-                          ],
+                            onPressed: _startDownload,
+                            icon: const Icon(Icons.download_rounded),
+                            label: const Text('Download', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
                         ),
 
                         // Active Download Progress & Metrics
