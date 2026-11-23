@@ -1,0 +1,134 @@
+name: Build & Release
+
+# Strictly restricted to triggers on main branch only
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Install Pub Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Tests
+        run: flutter test
+
+  build-linux:
+    name: Build Linux Release
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Bundle Engine
+        run: ./scripts/fetch_linux_engine.sh
+
+      - name: Build Release
+        run: flutter build linux --release
+
+      - name: Package Linux Bundle
+        run: |
+          tar -czf ctrl_video-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctrl_video-linux-x64
+          path: ctrl_video-linux-x64.tar.gz
+
+  build-windows:
+    name: Build Windows Release
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Fetch Windows Engine
+        shell: bash
+        run: |
+          mkdir -p assets/engine/windows-x64
+          curl -L -o assets/engine/windows-x64/yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+
+      - name: Build Release
+        run: flutter build windows --release
+
+      - name: Package Windows Zip
+        shell: bash
+        run: |
+          7z a ctrl_video-windows-x64.zip ./build/windows/x64/runner/Release/*
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctrl_video-windows-x64
+          path: ctrl_video-windows-x64.zip
+
+  build-macos:
+    name: Build macOS Release
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Fetch macOS Engine
+        run: |
+          mkdir -p assets/engine/macos-arm64 assets/engine/macos-x64
+          curl -L -o assets/engine/macos-arm64/yt-dlp_macos https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
+          chmod +x assets/engine/macos-arm64/yt-dlp_macos
+          cp assets/engine/macos-arm64/yt-dlp_macos assets/engine/macos-x64/yt-dlp_macos
+
+      - name: Build Release
+        run: flutter build macos --release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctrl_video-macos
+          path: build/macos/Build/Products/Release/ctrl_video.app

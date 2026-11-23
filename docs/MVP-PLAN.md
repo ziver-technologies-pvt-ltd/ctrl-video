@@ -1,6 +1,6 @@
-# ytcliptool: MVP Plan
+# ctrl+video: MVP Plan
 
-A cross-platform desktop app (Flutter) that downloads videos using the **user's own machine and IP**, by running yt-dlp and ffmpeg as bundled sidecar processes. A small static website (ytcliptool.org) serves as the landing and download page.
+A cross-platform desktop app (Flutter) that downloads videos using the **user's own machine and IP**, by running yt-dlp and ffmpeg as bundled sidecar processes. A small static website (ctrlvideo.org) serves as the landing and download page.
 
 ---
 
@@ -86,7 +86,7 @@ A cross-platform desktop app (Flutter) that downloads videos using the **user's 
 
 ### Project structure
 ```
-ytcliptool/
+ctrl_video/
 ├─ lib/
 │  ├─ main.dart
 │  ├─ app/                 # theme, routing
@@ -103,7 +103,7 @@ ytcliptool/
 │  │  └─ error_classifier.dart
 │  ├─ data/                # Drift tables, repositories
 │  └─ models/              # MediaInfo, FormatOption, DownloadTask, EngineInfo
-├─ assets/engine/          # (or fetched on first run, see section 5)
+├─ assets/engine/          # bundled engine binaries (yt-dlp, ffmpeg)
 ├─ test/
 ├─ scripts/                # fetch-engine, package, sign
 └─ .github/workflows/
@@ -114,7 +114,7 @@ ytcliptool/
 ## 5. Key design decisions
 
 ### 5.1 Where the engine lives
-Store binaries in the **per-user app-data directory** (e.g. `%APPDATA%/ytcliptool/engine/`, `~/Library/Application Support/ytcliptool/engine/`, `~/.local/share/ytcliptool/engine/`), not inside the install directory. This avoids admin rights for updates and lets the app swap the engine freely.
+Store binaries in the **per-user app-data directory** (e.g. `%APPDATA%/ctrl_video/engine/`, `~/Library/Application Support/ctrl_video/engine/`, `~/.local/share/ctrl_video/engine/`), not inside the install directory. This avoids admin rights for updates and lets the app swap the engine freely.
 
 On first launch, copy the bundled engine there, or download it if you keep the installer small.
 
@@ -280,7 +280,7 @@ Buffer: add 1 week for macOS signing/notarization if it is your first time.
 
 ## 15. Next versions (after MVP)
 
-- **v0.2:** `ytcliptool://` deep link from the website, playlist support, subtitles and thumbnails, signed update manifest on your own CDN.
+- **v0.2:** `ctrlvideo://` deep link from the website, playlist support, subtitles and thumbnails, signed update manifest on your own CDN.
 - **v0.3:** optional browser-cookie login, opt-in crash reporting, `.deb` and Flatpak.
 - **v1.0:** licensing or monetization (if chosen), polished onboarding, localization.
 
@@ -288,8 +288,8 @@ Buffer: add 1 week for macOS signing/notarization if it is your first time.
 
 ## 16. Open decisions
 
-1. Final product name and domain confirmation (ytcliptool.org).
-2. Bundle the engine in the installer, or download on first run?
-3. First OS to target for the prototype (suggested: the one you develop on).
+1. Product name and domain: **ctrl+video** (ctrlvideo.org).
+2. Engine delivery: Bundled initial binaries in installer/assets, seeded into app-data on first run.
+3. First development & prototype target: Linux (Fedora).
 4. Whether yt-dlp's current YouTube support needs a bundled JS runtime (verify in week 1).
 5. Monetization model, which determines whether a backend is needed after the MVP.
