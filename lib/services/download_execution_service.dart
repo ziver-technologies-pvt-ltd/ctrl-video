@@ -8,6 +8,7 @@ import 'engine_manager.dart';
 import 'error_classifier.dart';
 import 'path_resolver.dart';
 import 'process_runner.dart';
+import 'trim_service.dart';
 
 enum DownloadStatus {
   idle,
@@ -46,6 +47,7 @@ class DownloadExecutionService {
     required MediaInfo mediaInfo,
     required FormatOption format,
     FormatSelection? formatSelection,
+    TrimRange? trimRange,
     Directory? destinationDir,
     required void Function(DownloadProgress progress) onProgress,
   }) async {
@@ -62,6 +64,10 @@ class DownloadExecutionService {
         ffmpegFile.parent.path,
       ],
     ];
+
+    if (trimRange != null && trimRange.isValid) {
+      args.addAll(trimRange.toYtDlpArgs());
+    }
 
     if (formatSelection != null) {
       args.addAll(formatSelection.toYtDlpArgs());

@@ -4,14 +4,18 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../data/database.dart';
+import '../models/format_selection.dart';
 import '../models/media_info.dart';
 import 'download_execution_service.dart';
 import 'error_classifier.dart';
+import 'trim_service.dart';
 
 class QueueItem {
   final int recordId;
   final MediaInfo mediaInfo;
   final FormatOption format;
+  final FormatSelection? formatSelection;
+  final TrimRange? trimRange;
   DownloadStatus status;
   DownloadProgress progress;
   String? error;
@@ -21,6 +25,8 @@ class QueueItem {
     required this.recordId,
     required this.mediaInfo,
     required this.format,
+    this.formatSelection,
+    this.trimRange,
     this.status = DownloadStatus.idle,
     this.progress = const DownloadProgress(),
     this.error,
@@ -61,6 +67,8 @@ class DownloadManager extends ChangeNotifier {
   Future<QueueItem> enqueue({
     required MediaInfo mediaInfo,
     required FormatOption format,
+    FormatSelection? formatSelection,
+    TrimRange? trimRange,
   }) async {
     final recordId = await _db.insertRecord(
       DownloadRecordsCompanion(
@@ -68,8 +76,15 @@ class DownloadManager extends ChangeNotifier {
         platform: Value(mediaInfo.platform),
         title: Value(mediaInfo.title),
         thumbnailUrl: Value(mediaInfo.thumbnailUrl),
-        formatLabel: Value(format.label),
+        formatLabel: Value(formatSelection?.label ?? format.label),
         status: const Value('pending'),
+        videoFormatId: Value(formatSelection?.videoFormatId),
+        audioFormatId: Value(formatSelection?.audioFormatId),
+        container: Value(formatSelection?.container),
+        audioCodec: Value(formatSelection?.audioCodec),
+        trimStartMs: Value(trimRange?.start.inMilliseconds),
+        trimEndMs: Value(trimRange?.end.inMilliseconds),
+        trimMode: Value(trimRange?.mode.name),
       ),
     );
 
@@ -77,6 +92,8 @@ class DownloadManager extends ChangeNotifier {
       recordId: recordId,
       mediaInfo: mediaInfo,
       format: format,
+      formatSelection: formatSelection,
+      trimRange: trimRange,
     );
 
     _queue.add(item);
@@ -113,6 +130,8 @@ class DownloadManager extends ChangeNotifier {
       final downloadedPath = await _executionService.startDownload(
         mediaInfo: item.mediaInfo,
         format: item.format,
+        formatSelection: item.formatSelection,
+        trimRange: item.trimRange,
         destinationDir: targetDir,
         onProgress: (p) {
           item.progress = p;

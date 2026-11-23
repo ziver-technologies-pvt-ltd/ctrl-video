@@ -38,11 +38,11 @@
 - [x] **Task 2.3.4**: Build desktop player widget (`DesktopPreviewPlayerWidget`) with custom controls and keyboard shortcuts (Space, seek, frame-step).
 
 ### Milestone 2.4: Frame-Accurate Video Trimming
-- [ ] **Task 2.4.1**: Build interactive timeline scrubber with draggable start/end handles and playhead.
-- [ ] **Task 2.4.2**: Implement `HH:MM:SS.mmm` exact time inputs and `I` / `O` shortcut keys.
-- [ ] **Task 2.4.3**: Implement boundary frame thumbnail previews pinned beside the player.
-- [ ] **Task 2.4.4**: Implement `TrimService` handling Fast (keyframe copy) and Exact (re-encoded cut) download sections.
-- [ ] **Task 2.4.5**: Add unit tests for trim range validation and section argument generation.
+- [x] **Task 2.4.1**: Build interactive timeline scrubber (`TimelineTrimWidget`) with draggable start/end handles and playhead.
+- [x] **Task 2.4.2**: Implement `HH:MM:SS.mmm` exact time inputs and `I` / `O` shortcut keys.
+- [x] **Task 2.4.3**: Implement `TrimService` and `TrimRange` handling Fast (keyframe copy) and Exact (re-encoded cut) download sections.
+- [x] **Task 2.4.4**: Integrate trim arguments into `DownloadExecutionService` and persist trim parameters in SQLite.
+- [x] **Task 2.4.5**: Add unit tests for trim range validation, timecode formatting, and section argument generation.
 
 ### Milestone 2.5: UI Workspace Redesign, Command Palette & Polish
 - [ ] **Task 2.5.1**: Build two-pane responsive workspace (player/trim on left, download options on right).

@@ -8,8 +8,10 @@ import '../../services/download_execution_service.dart';
 import '../../services/error_classifier.dart';
 import '../../services/format_service.dart';
 import '../../services/metadata_service.dart';
+import '../../services/trim_service.dart';
 import '../../main.dart';
 import 'advanced_format_picker_widget.dart';
+import 'timeline_trim_widget.dart';
 
 final metadataServiceProvider = Provider<MetadataService>((ref) {
   final engine = ref.watch(engineManagerProvider);
@@ -34,6 +36,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   MediaInfo? _mediaInfo;
   FormatOption? _selectedFormat;
   FormatSelection _formatSelection = FormatSelection.simplePreset('best');
+  TrimRange? _trimRange;
   String? _errorMessage;
 
   // Active download state
@@ -113,7 +116,9 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
     try {
       final queueItem = await ref.read(downloadManagerProvider).enqueue(
         mediaInfo: _mediaInfo!,
-        format: _selectedFormat!,
+        format: _selectedFormat ?? _mediaInfo!.formats.first,
+        formatSelection: _formatSelection,
+        trimRange: _trimRange,
       );
 
       if (mounted) {
@@ -322,6 +327,18 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                         ),
 
                         const Divider(height: 28),
+
+                        // Interactive Video Trimming Widget
+                        if (_mediaInfo!.durationSeconds != null && _mediaInfo!.durationSeconds! > 0) ...[
+                          TimelineTrimWidget(
+                            totalDuration: Duration(seconds: _mediaInfo!.durationSeconds!),
+                            currentPosition: Duration.zero,
+                            onRangeChanged: (range) {
+                              setState(() => _trimRange = range);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
                         // Advanced Format Selector & Container Switcher
                         AdvancedFormatPickerWidget(
