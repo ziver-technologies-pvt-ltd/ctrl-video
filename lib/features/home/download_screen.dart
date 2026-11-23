@@ -39,6 +39,7 @@ class DownloadScreen extends ConsumerStatefulWidget {
 }
 
 class _DownloadScreenState extends ConsumerState<DownloadScreen> {
+  final GlobalKey<DesktopPreviewPlayerWidgetState> _playerKey = GlobalKey<DesktopPreviewPlayerWidgetState>();
   final TextEditingController _urlController = TextEditingController();
   bool _isLoadingMetadata = false;
   MediaInfo? _mediaInfo;
@@ -47,6 +48,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   FormatOption? _selectedFormat;
   FormatSelection _formatSelection = FormatSelection.simplePreset('best');
   TrimRange? _trimRange;
+  Duration _playerCurrentPosition = Duration.zero;
   String? _errorMessage;
 
   @override
@@ -74,13 +76,13 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
       _mediaInfo = null;
       _previewStream = null;
       _parsedStreams = [];
+      _trimRange = null;
     });
 
     try {
       final service = ref.read(metadataServiceProvider);
       final info = await service.fetchMetadata(rawUrl);
 
-      // Resolve preview stream and parsed streams from raw JSON
       PreviewStreamInfo? preview;
       List<StreamItem> streams = [];
       if (info.rawJson != null) {
@@ -120,7 +122,6 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
       );
 
       if (mounted) {
-        // Show lightweight toast in bottom-right corner of viewport
         _showDownloadStartedToast(item);
       }
     } catch (e) {
@@ -175,7 +176,6 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Viewport-Fitted Zero-Scroll Layout
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -201,6 +201,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 _mediaInfo = null;
                                 _previewStream = null;
                                 _errorMessage = null;
+                                _trimRange = null;
                               });
                             },
                           )
@@ -267,7 +268,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
 
           const SizedBox(height: 12),
 
-          // 3. MAIN WORKSPACE AREA (Expands to fill viewport cleanly without window scrolling)
+          // 3. MAIN WORKSPACE AREA (Viewport-fitted zero-scroll layout)
           Expanded(
             child: _mediaInfo == null
                 ? Center(
@@ -293,46 +294,43 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                   )
                 : LayoutBuilder(
                     builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 780;
+                      final isWide = constraints.maxWidth >= 820;
 
-                      // LEFT PANE: In-app preview player & Interactive trim bar
-                      final leftPane = Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: _previewStream != null
-                                ? DesktopPreviewPlayerWidget(streamInfo: _previewStream!)
-                                : (_mediaInfo!.thumbnailUrl != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: Image.network(
-                                          _mediaInfo!.thumbnailUrl!,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                                        ),
-                                      )
-                                    : const SizedBox.shrink()),
-                          ),
-                          const SizedBox(height: 8),
-                          // Compact Trim Scrubber
-                          if (_mediaInfo!.durationSeconds != null && _mediaInfo!.durationSeconds! > 0)
-                            TimelineTrimWidget(
-                              totalDuration: Duration(seconds: _mediaInfo!.durationSeconds!),
-                              currentPosition: Duration.zero,
-                              onRangeChanged: (range) {
-                                setState(() => _trimRange = range);
-                              },
-                            ),
-                        ],
+                      // LEFT PANE: Dedicated, cinematic preview player
+                      final leftPane = Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: _previewStream != null
+                            ? DesktopPreviewPlayerWidget(
+                                key: _playerKey,
+                                streamInfo: _previewStream!,
+                                trimRange: _trimRange,
+                                onPositionChanged: (pos) {
+                                  _playerCurrentPosition = pos;
+                                },
+                              )
+                            : (_mediaInfo!.thumbnailUrl != null
+                                ? Center(
+                                    child: Image.network(
+                                      _mediaInfo!.thumbnailUrl!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                    ),
+                                  )
+                                : const SizedBox.shrink()),
                       );
 
-                      // RIGHT PANE: Title, platform, format selectors, and download button
+                      // RIGHT PANE: Title, Format Options, Trim Controls, and Download Action
                       final rightPane = Card(
                         margin: EdgeInsets.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // Title and Platform Header
                               Text(
@@ -370,26 +368,52 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 ],
                               ),
 
-                              const Divider(height: 20),
+                              const Divider(height: 18),
 
-                              // Format Picker (Video vs Audio Only tabs)
+                              // Scrollable controls area for Format and Trimming
                               Expanded(
                                 child: SingleChildScrollView(
-                                  child: AdvancedFormatPickerWidget(
-                                    streams: _parsedStreams,
-                                    initialSelection: _formatSelection,
-                                    onSelectionChanged: (selection) {
-                                      setState(() {
-                                        _formatSelection = selection;
-                                      });
-                                    },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      // 1. Format Picker
+                                      AdvancedFormatPickerWidget(
+                                        streams: _parsedStreams,
+                                        initialSelection: _formatSelection,
+                                        onSelectionChanged: (selection) {
+                                          setState(() {
+                                            _formatSelection = selection;
+                                          });
+                                        },
+                                      ),
+
+                                      const SizedBox(height: 14),
+
+                                      // 2. Video Trimming Option (Moved to right panel)
+                                      if (_mediaInfo!.durationSeconds != null && _mediaInfo!.durationSeconds! > 0) ...[
+                                        TimelineTrimWidget(
+                                          totalDuration: Duration(seconds: _mediaInfo!.durationSeconds!),
+                                          currentPosition: _playerCurrentPosition,
+                                          onRangeChanged: (range) {
+                                            setState(() => _trimRange = range);
+                                            // When trim range is set/updated, seek preview player to clip start
+                                            if (range != null && range.isValid) {
+                                              _playerKey.currentState?.seekTo(range.start);
+                                            }
+                                          },
+                                          onSeekRequested: (target) {
+                                            _playerKey.currentState?.seekTo(target);
+                                          },
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                               ),
 
                               const SizedBox(height: 12),
 
-                              // Bottom Download Action
+                              // Bottom Download Button
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: FilledButton.icon(
