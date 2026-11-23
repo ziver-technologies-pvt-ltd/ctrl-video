@@ -44,5 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Widget Preview related
-.widget_preview/
+# Engine binaries (downloaded via scripts/fetch_linux_engine.sh or CI)
+assets/engine/*
+!assets/engine/.gitkeep
