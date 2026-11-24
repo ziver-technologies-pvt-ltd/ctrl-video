@@ -1,14 +1,17 @@
 ; Inno Setup Script for ctrl+video (Windows x64)
+#ifndef AppVersion
+  #define AppVersion "0.1.0"
+#endif
+
 #define MyAppName "ctrl+video"
-#define MyAppVersion "0.1.0"
-#define MyAppPublisher "ctrlvideo.org"
-#define MyAppURL "https://ctrlvideo.org"
+#define MyAppPublisher "Ziver Technologies Pvt Ltd"
+#define MyAppURL "https://github.com/ziver-technologies-pvt-ltd/ctrl-video"
 #define MyAppExeName "ctrl_video.exe"
 
 [Setup]
 AppId={{9F82A4D1-1C34-453F-92AE-868BA2398451}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion={#AppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -16,10 +19,12 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\build\windows\installer
-OutputBaseFilename=ctrl_video-setup-x64
-Compression=lzma
+OutputBaseFilename=ctrl_video-windows-setup-x64
+Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+ArchitecturesInstallIn64BitMode=x64compatible
+ArchitecturesAllowed=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

@@ -45,8 +45,8 @@ jobs:
       - name: Run Flutter Tests
         run: flutter test
 
-  build-linux:
-    name: Build Linux Release
+  build-linux-rpm:
+    name: Build Linux RPM Release
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -59,10 +59,11 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install Linux Build Dependencies
+      - name: Install Linux Build & Packaging Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libasound2-dev libmpv-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libasound2-dev libmpv-dev rpm ruby-full
+          sudo gem install --no-document fpm
 
       - name: Bundle Engine
         run: ./scripts/fetch_linux_engine.sh
@@ -70,18 +71,52 @@ jobs:
       - name: Build Release
         run: flutter build linux --release
 
-      - name: Package Linux Bundle
+      - name: Package Linux RPM with FPM
         run: |
-          tar -czf ctrl_video-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          
+          # Prepare Linux filesystem tree in root staging directory
+          mkdir -p staging/opt/ctrl_video
+          mkdir -p staging/usr/bin
+          mkdir -p staging/usr/share/applications
+          mkdir -p staging/usr/share/icons/hicolor/128x128/apps
+          
+          # Copy compiled bundle to /opt/ctrl_video
+          cp -r build/linux/x64/release/bundle/* staging/opt/ctrl_video/
+          
+          # Create symlink in /usr/bin
+          ln -s /opt/ctrl_video/ctrl_video staging/usr/bin/ctrl_video
+          
+          # Copy desktop entry & icon
+          cp linux/packaging/ctrl_video.desktop staging/usr/share/applications/
+          cp lib/assets/logo.png staging/usr/share/icons/hicolor/128x128/apps/ctrl_video.png
+          
+          # Build RPM using FPM
+          fpm -s dir -t rpm \
+            -n "ctrl-video" \
+            -v "$VERSION" \
+            --iteration "1" \
+            --architecture "x86_64" \
+            --maintainer "Ziver Technologies Pvt Ltd <team.ziversolutions@gmail.com>" \
+            --description "Fast, tactile, local video downloader and clip trimming studio" \
+            --url "https://github.com/ziver-technologies-pvt-ltd/ctrl-video" \
+            --license "MIT" \
+            --depends "gtk3" \
+            --depends "alsa-lib" \
+            --depends "mpv-libs" \
+            -C staging \
+            .
+            
+          mv *.rpm ctrl_video-linux-x86_64.rpm
 
-      - name: Upload Artifact
+      - name: Upload RPM Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ctrl_video-linux-x64
-          path: ctrl_video-linux-x64.tar.gz
+          name: ctrl_video-linux-rpm
+          path: ctrl_video-linux-x86_64.rpm
 
-  build-windows:
-    name: Build Windows Release
+  build-windows-installer:
+    name: Build Windows Inno Setup Release
     needs: test
     runs-on: windows-latest
     steps:
@@ -103,19 +138,20 @@ jobs:
       - name: Build Release
         run: flutter build windows --release
 
-      - name: Package Windows Zip
+      - name: Compile Inno Setup Installer
         shell: bash
         run: |
-          7z a ctrl_video-windows-x64.zip ./build/windows/x64/runner/Release/*
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" //DAppVersion="$VERSION" windows/installer.iss
 
-      - name: Upload Artifact
+      - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ctrl_video-windows-x64
-          path: ctrl_video-windows-x64.zip
+          name: ctrl_video-windows-setup
+          path: build/windows/installer/ctrl_video-windows-setup-x64.exe
 
-  build-macos:
-    name: Build macOS Release
+  build-macos-dmg:
+    name: Build macOS Universal DMG Release
     needs: test
     runs-on: macos-latest
     steps:
@@ -128,29 +164,47 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Fetch macOS Engine
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Fetch macOS Universal Engine
         run: |
           mkdir -p assets/engine/macos-arm64 assets/engine/macos-x64
           curl -L -o assets/engine/macos-arm64/yt-dlp_macos https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
           chmod +x assets/engine/macos-arm64/yt-dlp_macos
           cp assets/engine/macos-arm64/yt-dlp_macos assets/engine/macos-x64/yt-dlp_macos
 
-      - name: Build Release
+      - name: Build macOS Release (Universal: Intel & Apple Silicon)
         run: flutter build macos --release
 
-      - name: Package macOS Tarball
+      - name: Package macOS DMG
         run: |
-          tar -czf ctrl_video-macos.tar.gz -C build/macos/Build/Products/Release ctrl_video.app
+          mkdir -p dist
+          create-dmg \
+            --volname "ctrl+video Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "ctrl_video.app" 175 120 \
+            --hide-extension "ctrl_video.app" \
+            --app-drop-link 425 120 \
+            "dist/ctrl_video-macos-universal.dmg" \
+            "build/macos/Build/Products/Release/ctrl_video.app" || true
+          
+          # If create-dmg returned non-zero due to Finder automation quirks on CI, fallback to hdiutil dmg
+          if [ ! -f "dist/ctrl_video-macos-universal.dmg" ]; then
+            hdiutil create -volname "ctrl+video" -srcfolder "build/macos/Build/Products/Release/ctrl_video.app" -ov -format UDZO "dist/ctrl_video-macos-universal.dmg"
+          fi
 
-      - name: Upload Artifact
+      - name: Upload DMG Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ctrl_video-macos
-          path: ctrl_video-macos.tar.gz
+          name: ctrl_video-macos-dmg
+          path: dist/ctrl_video-macos-universal.dmg
 
   publish-release:
     name: Publish Versioned GitHub Release
-    needs: [build-linux, build-windows, build-macos]
+    needs: [build-linux-rpm, build-windows-installer, build-macos-dmg]
     # Only run release publication on direct push to main or on release tags (never on PRs)
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -158,20 +212,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download Linux Artifact
+      - name: Download Linux RPM Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ctrl_video-linux-x64
+          name: ctrl_video-linux-rpm
 
-      - name: Download Windows Artifact
+      - name: Download Windows Installer Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ctrl_video-windows-x64
+          name: ctrl_video-windows-setup
 
-      - name: Download macOS Artifact
+      - name: Download macOS DMG Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ctrl_video-macos
+          name: ctrl_video-macos-dmg
 
       - name: Determine Release Tag & Version
         id: versioning
@@ -179,7 +233,6 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           else
-            # Extract version from pubspec.yaml on main branch push
             VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
             TAG_NAME="v${VERSION}"
           fi
@@ -195,8 +248,8 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            ctrl_video-linux-x64.tar.gz
-            ctrl_video-windows-x64.zip
-            ctrl_video-macos.tar.gz
+            ctrl_video-windows-setup-x64.exe
+            ctrl_video-linux-x86_64.rpm
+            ctrl_video-macos-universal.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
