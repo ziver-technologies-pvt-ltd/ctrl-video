@@ -49,3 +49,7 @@ flutter:
     - lib/assets/
     - assets/branding/
     - assets/engine/
+    - assets/engine/linux-x64/
+    - assets/engine/macos-arm64/
+    - assets/engine/macos-x64/
+    - assets/engine/windows-x64/

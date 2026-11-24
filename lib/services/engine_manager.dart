@@ -171,18 +171,34 @@ class EngineManager {
 
   Future<void> _seedBinaryFromAssets(String fileName, File destination) async {
     final platformKey = PathResolver.getPlatformKey();
-    final assetPath = 'assets/engine/$platformKey/$fileName';
+    final candidatePaths = [
+      'assets/engine/$platformKey/$fileName',
+      if (Platform.isMacOS) ...[
+        // Fallback for macOS if architecture string wasn't matched
+        'assets/engine/macos-arm64/$fileName',
+        'assets/engine/macos-x64/$fileName',
+      ],
+      'assets/engine/$fileName',
+    ];
 
-    try {
-      final byteData = await rootBundle.load(assetPath);
-      final bytes = byteData.buffer.asUint8List();
-      await destination.parent.create(recursive: true);
-      await destination.writeAsBytes(bytes, flush: true);
+    for (final assetPath in candidatePaths) {
+      try {
+        final byteData = await rootBundle.load(assetPath);
+        final bytes = byteData.buffer.asUint8List();
+        await destination.parent.create(recursive: true);
+        await destination.writeAsBytes(bytes, flush: true);
 
-      if (!Platform.isWindows) {
-        await Process.run('chmod', ['+x', destination.path]);
+        if (!Platform.isWindows) {
+          await Process.run('chmod', ['+x', destination.path]);
+        }
+        _logger.i('Successfully seeded $fileName from $assetPath to ${destination.path}');
+        return;
+      } catch (_) {
+        // Continue to next candidate path
       }
-    } catch (_) {}
+    }
+
+    _logger.w('Failed to seed $fileName from assets. Checked paths: $candidatePaths');
   }
 
   Future<bool> _hasSystemBinary(String name) async {
