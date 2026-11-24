@@ -45,5 +45,6 @@ app.*.map.json
 /android/app/release
 
 # Engine binaries (downloaded via scripts/fetch_linux_engine.sh or CI)
-assets/engine/*
+assets/engine/*/*
+!assets/engine/*/.gitkeep
 !assets/engine/.gitkeep
