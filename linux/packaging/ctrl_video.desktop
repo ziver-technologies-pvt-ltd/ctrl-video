@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ctrl+video
+GenericName=Video Downloader & Trimmer
+Comment=Fast, tactile, local video downloader and clip trimming studio
+Exec=/opt/ctrl_video/ctrl_video %u
+Icon=ctrl_video
+Terminal=false
+Categories=AudioVideo;AudioVideoEditing;Network;
+Keywords=video;downloader;trimmer;youtube;instagram;facebook;
+StartupWMClass=ctrl_video
+MimeType=x-scheme-handler/ctrlvideo;

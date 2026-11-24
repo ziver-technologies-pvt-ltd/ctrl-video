@@ -61,53 +61,30 @@ Pre-compiled binary releases for all three desktop platforms are available on th
 
 ### 🐧 Linux
 
-#### Option A: Running from Release Tarball
-1. Download `ctrl_video-linux-x64.tar.gz` from the latest release.
-2. Ensure runtime dependencies are installed:
-   - **Ubuntu / Debian**:
-     ```bash
-     sudo apt-get update
-     sudo apt-get install -y libgtk-3-0 libasound2 libmpv2
-     ```
-   - **Fedora / RHEL**:
-     ```bash
-     sudo dnf install gtk3 alsa-lib mpv-libs
-     ```
-   - **Arch Linux**:
-     ```bash
-     sudo pacman -S gtk3 alsa-lib mpv
-     ```
-3. Extract and launch:
+#### Option A: Installing via RPM Package (Fedora, RHEL, openSUSE)
+1. Download `ctrl_video-linux-x86_64.rpm` from the latest release.
+2. Install with your package manager (automatically resolves runtime dependencies):
    ```bash
-   tar -xzf ctrl_video-linux-x64.tar.gz
-   ./ctrl_video
+   sudo dnf install ./ctrl_video-linux-x86_64.rpm
    ```
+3. Launch `ctrl+video` from your desktop application launcher or run `ctrl_video` in terminal.
 
 ---
 
 ### 🪟 Windows
 
-1. Download `ctrl_video-windows-x64.zip` from the latest release.
-2. Extract the archive into your preferred directory (e.g., `C:\Program Files\ctrl+video` or your desktop).
-3. Ensure the [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) is installed (standard on most Windows systems).
-4. Run `ctrl_video.exe`.
-
-> **Note:** If Windows SmartScreen shows an unrecognized application prompt on first launch, click **More info** → **Run anyway**.
+1. Download the single setup installer **`ctrl_video-windows-setup-x64.exe`** from the latest release.
+2. Double-click the installer and follow the setup wizard.
+3. It will install `ctrl+video` to Program Files, add Start Menu and Desktop shortcuts, and provide a standard Windows uninstaller.
 
 ---
 
-### 🍏 macOS
+### 🍏 macOS (Intel & Apple Silicon / M-Series)
 
-1. Download `ctrl_video-macos.tar.gz` from the latest release.
-2. Extract the archive:
-   ```bash
-   tar -xzf ctrl_video-macos.tar.gz
-   ```
-3. Move `ctrl_video.app` to your `/Applications` folder:
-   ```bash
-   mv ctrl_video.app /Applications/
-   ```
-4. Launch `ctrl+video` from Spotlight or Applications.
+1. Download the single disk image **`ctrl_video-macos-universal.dmg`** from the latest release (native universal build for both Apple Silicon M1/M2/M3/M4 and Intel Macs).
+2. Double-click `ctrl_video-macos-universal.dmg` to mount the image.
+3. Drag **`ctrl_video.app`** into your **Applications** folder shortcut.
+4. Launch `ctrl+video` from Spotlight or Launchpad.
 
 > **First Launch Gatekeeper Notice:**
 > If macOS displays *"ctrl+video cannot be opened because the developer cannot be verified"*:
