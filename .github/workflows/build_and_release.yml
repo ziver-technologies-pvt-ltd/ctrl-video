@@ -174,7 +174,7 @@ jobs:
           chmod +x assets/engine/macos-arm64/yt-dlp_macos
           cp assets/engine/macos-arm64/yt-dlp_macos assets/engine/macos-x64/yt-dlp_macos
 
-      - name: Build macOS Release (Universal: Intel & Apple Silicon)
+      - name: "Build macOS Release (Universal: Intel and Apple Silicon)"
         run: flutter build macos --release
 
       - name: Package macOS DMG
